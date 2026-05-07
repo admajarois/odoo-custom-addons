@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Kitchen Display QWeb Template (valid XML; CSS/JS in static files) -->
+    <template id="kitchen_display_template" name="Kitchen Display">
+        <t t-call="web.layout">
+            <t t-set="title">Kitchen Display</t>
+            <t t-set="head">
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <t t-call-assets="web.assets_frontend"/>
+                <t t-call-assets="pos_kitchen_display.assets_kitchen_display"/>
+            </t>
+
+            <div id="pos_kitchen_display_root" class="container">
+                <div class="header">
+                    <h1>Kitchen Display</h1>
+                    <button class="refresh-btn" id="refresh-btn">Refresh</button>
+                </div>
+
+                <div class="kitchen-stats">
+                    <div class="kitchen-stat pending">
+                        <div class="kitchen-stat-value" id="stat-pending">0</div>
+                        <div class="kitchen-stat-label">Pending</div>
+                    </div>
+                    <div class="kitchen-stat cooking">
+                        <div class="kitchen-stat-value" id="stat-cooking">0</div>
+                        <div class="kitchen-stat-label">In Progress</div>
+                    </div>
+                    <div class="kitchen-stat done">
+                        <div class="kitchen-stat-value" id="stat-done">0</div>
+                        <div class="kitchen-stat-label">Done</div>
+                    </div>
+                </div>
+
+                <div id="orders-container" class="kitchen-orders-grid">
+                    <div class="kitchen-empty">
+                        <div class="kitchen-empty-icon">&#x1F373;</div>
+                        <div class="kitchen-empty-text">Loading orders...</div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

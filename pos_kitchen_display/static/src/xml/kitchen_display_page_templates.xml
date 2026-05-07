@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="pos_kitchen_display.KitchenOrdersContainer">
+        <t t-if="orders &amp;&amp; orders.length">
+            <t t-foreach="orders" t-as="order" t-key="order.id">
+                <t t-call="pos_kitchen_display.KitchenOrderCard"/>
+            </t>
+        </t>
+        <t t-else="">
+            <t t-call="pos_kitchen_display.KitchenEmptyState"/>
+        </t>
+    </t>
+
+    <t t-name="pos_kitchen_display.KitchenEmptyState">
+        <div class="kitchen-empty">
+            <div class="kitchen-empty-icon">&#x1F373;</div>
+            <div class="kitchen-empty-text">No orders in queue</div>
+        </div>
+    </t>
+
+    <t t-name="pos_kitchen_display.KitchenOrderCard">
+        <div t-attf-class="kitchen-order-card {{ order.state || 'pending' }}" t-att-data-order-id="order.id">
+            <div class="kitchen-order-header">
+                <div>
+                    <div class="kitchen-order-number">
+                        <t t-esc="order.name || ''"/>
+                    </div>
+                    <div class="kitchen-order-table">
+                        <t t-esc="order.table_name || 'No Table'"/>
+                    </div>
+                </div>
+                <div class="kitchen-order-time">
+                    <t t-esc="formatTime(order.order_date)"/>
+                </div>
+            </div>
+
+            <div class="kitchen-order-customer">
+                <t t-esc="order.customer_name || 'Guest'"/>
+            </div>
+
+            <div class="kitchen-order-lines">
+                <t t-foreach="order.line_ids || []" t-as="line" t-key="line.id || line.product_name">
+                    <div t-attf-class="kitchen-order-line {{ line.state === 'done' ? 'done' : (line.state === 'cancelled' ? 'cancelled' : '') }}">
+                        <div>
+                            <div class="kitchen-order-line-name">
+                                <t t-esc="line.product_name || ''"/>
+                            </div>
+                            <t t-if="line.note">
+                                <div class="kitchen-order-line-note">
+                                    <t t-esc="line.note"/>
+                                </div>
+                            </t>
+                        </div>
+                        <div class="kitchen-order-line-qty">
+                            x<t t-esc="line.quantity || 0"/>
+                        </div>
+                    </div>
+                </t>
+            </div>
+
+            <div class="kitchen-order-actions">
+                <button class="kitchen-order-btn start" data-action="start" t-att-data-id="order.id">Start</button>
+                <button class="kitchen-order-btn done-btn" data-action="done" t-att-data-id="order.id">Done</button>
+                <button class="kitchen-order-btn cancel" data-action="cancel" t-att-data-id="order.id">Cancel</button>
+            </div>
+        </div>
+    </t>
+</templates>

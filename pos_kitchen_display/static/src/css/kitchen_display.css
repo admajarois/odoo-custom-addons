@@ -1,0 +1,310 @@
+/* POS Kitchen Display Styles */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #1a1a1a;
+    color: #fff;
+    min-height: 100vh;
+}
+
+.container {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.header h1 {
+    color: #fff;
+    font-size: 28px;
+}
+
+.refresh-btn {
+    background: #3498db;
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.refresh-btn:hover {
+    background: #2980b9;
+}
+
+.kitchen-display {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 16px;
+    background-color: #1a1a1a;
+    min-height: 100vh;
+}
+
+.kitchen-order-card {
+    background: #2d2d2d;
+    border-radius: 12px;
+    padding: 16px;
+    width: 300px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s;
+}
+
+.kitchen-order-card:hover {
+    transform: translateY(-4px);
+}
+
+.kitchen-order-card.pending {
+    border-left: 4px solid #3498db;
+}
+
+.kitchen-order-card.in_progress {
+    border-left: 4px solid #f39c12;
+}
+
+.kitchen-order-card.done {
+    border-left: 4px solid #27ae60;
+    opacity: 0.7;
+}
+
+.kitchen-order-card.cancelled {
+    border-left: 4px solid #e74c3c;
+    opacity: 0.5;
+}
+
+.kitchen-order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #444;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+}
+
+.kitchen-order-number {
+    font-size: 18px;
+    font-weight: bold;
+    color: #fff;
+}
+
+.kitchen-order-table {
+    font-size: 14px;
+    color: #aaa;
+    background: #444;
+    padding: 4px 12px;
+    border-radius: 4px;
+}
+
+.kitchen-order-time {
+    font-size: 12px;
+    color: #888;
+    text-align: right;
+}
+
+.kitchen-order-customer {
+    font-size: 14px;
+    color: #ccc;
+    margin-bottom: 12px;
+}
+
+.kitchen-order-priority {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.kitchen-order-priority.normal {
+    background: #3498db;
+    color: #fff;
+}
+
+.kitchen-order-priority.rush {
+    background: #e74c3c;
+    color: #fff;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.kitchen-order-lines {
+    margin-bottom: 12px;
+}
+
+.kitchen-order-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px;
+    background: #3d3d3d;
+    margin-bottom: 8px;
+    border-radius: 6px;
+}
+
+.kitchen-order-line.done {
+    background: #2d5a2d;
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+.kitchen-order-line.cancelled {
+    background: #5a2d2d;
+    text-decoration: line-through;
+    opacity: 0.4;
+}
+
+.kitchen-order-line-name {
+    font-size: 14px;
+    color: #fff;
+    font-weight: 500;
+}
+
+.kitchen-order-line-qty {
+    font-size: 16px;
+    color: #f39c12;
+    font-weight: bold;
+}
+
+.kitchen-order-line-note {
+    font-size: 12px;
+    color: #e74c3c;
+    font-style: italic;
+    margin-top: 4px;
+}
+
+.kitchen-order-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.kitchen-orders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+    width: 100%;
+}
+
+.kitchen-order-btn {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.kitchen-order-btn.start {
+    background: #3498db;
+    color: #fff;
+}
+
+.kitchen-order-btn.start:hover {
+    background: #2980b9;
+}
+
+.kitchen-order-btn.done-btn {
+    background: #27ae60;
+    color: #fff;
+}
+
+.kitchen-order-btn.done-btn:hover {
+    background: #219a52;
+}
+
+.kitchen-order-btn.cancel {
+    background: #e74c3c;
+    color: #fff;
+}
+
+.kitchen-order-btn.cancel:hover {
+    background: #c0392b;
+}
+
+.kitchen-order-btn.reset {
+    background: #95a5a6;
+    color: #fff;
+}
+
+.kitchen-order-btn.reset:hover {
+    background: #7f8c8d;
+}
+
+/* Stats Header */
+.kitchen-stats {
+    display: flex;
+    justify-content: space-around;
+    padding: 16px;
+    background: #2d2d2d;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    width: 100%;
+}
+
+.kitchen-stat {
+    text-align: center;
+}
+
+.kitchen-stat-value {
+    font-size: 32px;
+    font-weight: bold;
+    color: #fff;
+}
+
+.kitchen-stat-label {
+    font-size: 12px;
+    color: #888;
+    text-transform: uppercase;
+}
+
+.kitchen-stat.pending .kitchen-stat-value { color: #3498db; }
+.kitchen-stat.cooking .kitchen-stat-value { color: #f39c12; }
+.kitchen-stat.done .kitchen-stat-value { color: #27ae60; }
+
+/* Sound notification indicator */
+.sound-indicator {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    background: #3498db;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    z-index: 1000;
+}
+
+.sound-indicator:hover {
+    background: #2980b9;
+}
+
+/* Empty state */
+.kitchen-empty {
+    text-align: center;
+    color: #888;
+    padding: 60px;
+    width: 100%;
+}
+
+.kitchen-empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+}
+
+.kitchen-empty-text {
+    font-size: 18px;
+}

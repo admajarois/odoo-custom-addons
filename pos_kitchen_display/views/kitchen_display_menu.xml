@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Sequence for Kitchen Order -->
+    <record id="seq_pos_kitchen_order" model="ir.sequence">
+        <field name="name">POS Kitchen Order Sequence</field>
+        <field name="code">pos.kitchen.order</field>
+        <field name="prefix">KO/</field>
+        <field name="padding">5</field>
+    </record>
+
+    <!-- Kitchen Display Menu - Removed due to compatibility issues -->
+    <!-- Access via direct URL: /pos/kitchen/display -->
+</odoo>

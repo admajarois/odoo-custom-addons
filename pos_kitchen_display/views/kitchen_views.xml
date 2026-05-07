@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- Kitchen Order List View -->
+    <record id="view_pos_kitchen_order_list" model="ir.ui.view">
+        <field name="name">pos.kitchen.order.list</field>
+        <field name="model">pos.kitchen.order</field>
+        <field name="arch" type="xml">
+            <list decoration-info="state == 'pending'" decoration-warning="state == 'in_progress'" decoration-danger="state == 'cancelled'" decoration-success="state == 'done'" default_order="create_date desc">
+                <field name="name"/>
+                <field name="order_date"/>
+                <field name="table_name"/>
+                <field name="customer_name"/>
+                <field name="user_id"/>
+                <field name="state"/>
+                <field name="priority"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Kitchen Order Form View -->
+    <record id="view_pos_kitchen_order_form" model="ir.ui.view">
+        <field name="name">pos.kitchen.order.form</field>
+        <field name="model">pos.kitchen.order</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_start" string="Start" type="object" class="btn-primary"/>
+                    <button name="action_done" string="Done" type="object" class="btn-success"/>
+                    <button name="action_cancel" string="Cancel" type="object" class="btn-danger"/>
+                    <button name="action_reset" string="Reset" type="object"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" readonly="1"/>
+                            <field name="table_name"/>
+                            <field name="customer_name"/>
+                        </group>
+                        <group>
+                            <field name="order_date"/>
+                            <field name="user_id" readonly="1"/>
+                            <field name="priority"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="note"/>
+                    </group>
+                    <field name="line_ids">
+                        <list editable="bottom">
+                            <field name="product_name"/>
+                            <field name="quantity"/>
+                            <field name="note"/>
+                            <field name="state"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Kitchen Order Line List View -->
+    <record id="view_pos_kitchen_order_line_list" model="ir.ui.view">
+        <field name="name">pos.kitchen.order.line.list</field>
+        <field name="model">pos.kitchen.order.line</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="product_name"/>
+                <field name="quantity"/>
+                <field name="note"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Kitchen Order Search View -->
+    <record id="view_pos_kitchen_order_search" model="ir.ui.view">
+        <field name="name">pos.kitchen.order.search</field>
+        <field name="model">pos.kitchen.order</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="customer_name"/>
+                <field name="table_name"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Kitchen Order Action -->
+    <record id="action_pos_kitchen_order" model="ir.actions.act_window">
+        <field name="name">Kitchen Orders</field>
+        <field name="res_model">pos.kitchen.order</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Kitchen Order Line Action -->
+    <record id="action_pos_kitchen_order_line" model="ir.actions.act_window">
+        <field name="name">Kitchen Order Lines</field>
+        <field name="res_model">pos.kitchen.order.line</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="model_pos_kitchen_order_menu"
+        name="Kitchen Order"
+        action="action_pos_kitchen_order"
+        parent="point_of_sale.menu_point_root"
+        sequence="10"/>
+
+    
+</odoo>
