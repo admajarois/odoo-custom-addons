@@ -23,19 +23,19 @@
             <div class="kitchen-order-header">
                 <div>
                     <div class="kitchen-order-number">
-                        <t t-esc="order.name || ''"/>
+                        <t t-out="order.name || ''"/>
                     </div>
                     <div class="kitchen-order-table">
-                        <t t-esc="order.table_name || 'No Table'"/>
+                        <t t-out="order.table_name || 'No Table'"/>
                     </div>
                 </div>
                 <div class="kitchen-order-time">
-                    <t t-esc="formatTime(order.order_date)"/>
+                    <t t-out="formatTime(order.order_date)"/>
                 </div>
             </div>
 
             <div class="kitchen-order-customer">
-                <t t-esc="order.customer_name || 'Guest'"/>
+                <t t-out="order.partner_name || 'Guest'"/>
             </div>
 
             <div class="kitchen-order-lines">
@@ -43,25 +43,25 @@
                     <div t-attf-class="kitchen-order-line {{ line.state === 'done' ? 'done' : (line.state === 'cancelled' ? 'cancelled' : '') }}">
                         <div>
                             <div class="kitchen-order-line-name">
-                                <t t-esc="line.product_name || ''"/>
+                                <t t-out="line.product_name || ''"/>
                             </div>
                             <t t-if="line.note">
                                 <div class="kitchen-order-line-note">
-                                    <t t-esc="line.note"/>
+                                    <t t-out="line.note"/>
                                 </div>
                             </t>
                         </div>
                         <div class="kitchen-order-line-qty">
-                            x<t t-esc="line.quantity || 0"/>
+                            x<t t-out="line.quantity || 0"/>
                         </div>
                     </div>
                 </t>
             </div>
 
             <div class="kitchen-order-actions">
-                <button class="kitchen-order-btn start" data-action="start" t-att-data-id="order.id">Start</button>
-                <button class="kitchen-order-btn done-btn" data-action="done" t-att-data-id="order.id">Done</button>
-                <button class="kitchen-order-btn cancel" data-action="cancel" t-att-data-id="order.id">Cancel</button>
+                <button class="kitchen-order-btn start" data-action="start" t-att-data-id="order.id" t-if="order.state === 'pending'">Start</button>
+                <button class="kitchen-order-btn done-btn" data-action="done" t-att-data-id="order.id" t-if="order.state === 'in_progress'">Done</button>
+                <button class="kitchen-order-btn cancel" data-action="cancel" t-att-data-id="order.id" t-if="order.state === 'pending'">Cancel</button>
             </div>
         </div>
     </t>

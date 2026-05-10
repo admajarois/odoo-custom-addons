@@ -14,9 +14,8 @@ class PosKitchenOrder(models.Model):
 
     name = fields.Char(string='Order Reference', required=True, copy=False, readonly=True, default='New')
     pos_order_id = fields.Many2one('pos.order', string='POS Order', readonly=True, index=True)
-    table_id = fields.Integer(string='Table ID', index=True)
-    table_name = fields.Char(string='Table Name')
-    customer_name = fields.Char(string='Customer')
+    table_id = fields.Many2one('restaurant.table', string='Table')
+    partner_id = fields.Many2one('res.partner', string='Customer')
     order_date = fields.Datetime(string='Order Date', default=fields.Datetime.now)
     user_id = fields.Many2one('res.users', string='Cashier', default=lambda self: self.env.user)
     state = fields.Selection([
@@ -28,9 +27,11 @@ class PosKitchenOrder(models.Model):
     line_ids = fields.One2many('pos.kitchen.order.line', 'order_id', string='Order Lines')
     note = fields.Text(string='Notes')
     priority = fields.Selection([
-        ('normal', 'Normal'),
-        ('rush', 'Rush')
-    ], string='Priority', default='normal')
+        ('0', 'Low'),
+        ('1', 'Normal'),
+        ('2', 'Medium'),
+        ('3', 'High')
+    ], string='Priority', default='0')
     color = fields.Char(compute='_compute_color', string='Color')
 
     @api.model
@@ -50,7 +51,7 @@ class PosKitchenOrder(models.Model):
         for order in self:
             if order.state == 'cancelled':
                 order.color = 'red'
-            elif order.priority == 'rush':
+            elif order.pr5iority == '2':
                 order.color = 'orange'
             elif order.state == 'in_progress':
                 order.color = 'yellow'
@@ -103,8 +104,7 @@ class PosKitchenOrder(models.Model):
                 'name': 'New',
                 'pos_order_id': pos_order_id,
                 'table_id': order_data.get('table_id') or False,
-                'table_name': order_data.get('table_name', ''),
-                'customer_name': order_data.get('customer_name', ''),
+                'partner_id': order_data.get('partner_id') or False,
                 'order_date': fields.Datetime.now(),
                 'user_id': self.env.user.id,
                 'note': order_data.get('note', ''),

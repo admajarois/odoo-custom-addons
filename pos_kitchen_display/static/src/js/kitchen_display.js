@@ -27,11 +27,10 @@ patch(ProductScreen.prototype, {
         }
 
         const orderData = {
-            table_id: null,
-            table_name: order.table ? order.table.name : '',
-            customer_name: order.partner ? order.partner.name : '',
+            table_id: order.getTable,
+            partner_id: order.partner_id.id ? order.partner_id.id : '',
             note: order.note || '',
-            priority: 'normal',
+            priority: '0',
             lines: []
         };
 

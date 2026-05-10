@@ -12,7 +12,7 @@ class KitchenDisplay(http.Controller):
     def _read_kitchen_orders(self):
         orders = request.env['pos.kitchen.order'].sudo().search_read(
             [('state', 'in', ['pending', 'in_progress', 'done'])],
-            ['id', 'name', 'table_name', 'customer_name', 'order_date', 'state', 'priority', 'note', 'line_ids'],
+            ['id', 'name', 'table_id', 'partner_id', 'order_date', 'state', 'priority', 'note', 'line_ids'],
         )
         for order in orders:
             line_ids = order.get('line_ids') or []
@@ -41,7 +41,7 @@ class KitchenDisplay(http.Controller):
             return None
         return order_id or None
 
-    @http.route('/pos/kitchen/order/start', type='json', auth='user', website=False)
+    @http.route('/pos/kitchen/order/start', type='jsonrpc', auth='user', website=False)
     def start_order(self, order_id=None, **kw):
         order_id = self._coerce_order_id(order_id)
         if not order_id:
@@ -54,7 +54,7 @@ class KitchenDisplay(http.Controller):
         order.action_start()
         return {'success': True}
 
-    @http.route('/pos/kitchen/order/done', type='json', auth='user', website=False)
+    @http.route('/pos/kitchen/order/done', type='jsonrpc', auth='user', website=False)
     def mark_order_done(self, order_id=None, **kw):
         order_id = self._coerce_order_id(order_id)
         if not order_id:
@@ -67,7 +67,7 @@ class KitchenDisplay(http.Controller):
         order.action_done()
         return {'success': True}
 
-    @http.route('/pos/kitchen/order/cancel', type='json', auth='user', website=False)
+    @http.route('/pos/kitchen/order/cancel', type='jsonrpc', auth='user', website=False)
     def cancel_order(self, order_id=None, **kw):
         order_id = self._coerce_order_id(order_id)
         if not order_id:

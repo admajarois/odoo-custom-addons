@@ -9,8 +9,8 @@
             <list decoration-info="state == 'pending'" decoration-warning="state == 'in_progress'" decoration-danger="state == 'cancelled'" decoration-success="state == 'done'" default_order="create_date desc">
                 <field name="name"/>
                 <field name="order_date"/>
-                <field name="table_name"/>
-                <field name="customer_name"/>
+                <field name="table_id"/>
+                <field name="partner_id"/>
                 <field name="user_id"/>
                 <field name="state"/>
                 <field name="priority"/>
@@ -25,36 +25,42 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="action_start" string="Start" type="object" class="btn-primary"/>
-                    <button name="action_done" string="Done" type="object" class="btn-success"/>
-                    <button name="action_cancel" string="Cancel" type="object" class="btn-danger"/>
-                    <button name="action_reset" string="Reset" type="object"/>
-                    <field name="state" widget="statusbar"/>
+                    <button name="action_start" string="Start" invisible="state != 'pending'" type="object" class="btn-primary"/>
+                    <button name="action_done" string="Done" invisible="state != 'in_progress'" type="object" class="btn-success"/>
+                    <button name="action_cancel" string="Cancel" invisible="state == 'cancelled'" type="object" class="btn-danger"/>
+                    <button name="action_reset" string="Reset" invisible="state != 'cancelled'" type="object"/>
+                    <field name="state" widget="statusbar" statusbar_visible="pending,in_progress,done"/>
                 </header>
                 <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
                     <group>
                         <group>
-                            <field name="name" readonly="1"/>
-                            <field name="table_name"/>
-                            <field name="customer_name"/>
+                            <field name="table_id"/>
+                            <field name="partner_id"/>
                         </group>
                         <group>
                             <field name="order_date"/>
                             <field name="user_id" readonly="1"/>
-                            <field name="priority"/>
+                            <field name="priority" widget="priority"/>
                         </group>
                     </group>
-                    <group>
-                        <field name="note"/>
-                    </group>
-                    <field name="line_ids">
-                        <list editable="bottom">
-                            <field name="product_name"/>
-                            <field name="quantity"/>
-                            <field name="note"/>
-                            <field name="state"/>
-                        </list>
-                    </field>
+                    <notebook>
+                        <page name="order_line" string="Order Line">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="product_name"/>
+                                    <field name="quantity"/>
+                                    <field name="note"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                            <field name="note" />
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>
@@ -81,8 +87,8 @@
         <field name="arch" type="xml">
             <search>
                 <field name="name"/>
-                <field name="customer_name"/>
-                <field name="table_name"/>
+                <field name="partner_id"/>
+                <field name="table_id"/>
             </search>
         </field>
     </record>

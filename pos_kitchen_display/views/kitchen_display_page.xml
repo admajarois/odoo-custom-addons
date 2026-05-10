@@ -18,16 +18,25 @@
 
                 <div class="kitchen-stats">
                     <div class="kitchen-stat pending">
-                        <div class="kitchen-stat-value" id="stat-pending">0</div>
-                        <div class="kitchen-stat-label">Pending</div>
+                        <div class="kitchen-stat-icon">&#x23F3;</div>
+                        <div class="kitchen-stat-body">
+                            <div class="kitchen-stat-value" id="stat-pending">0</div>
+                            <div class="kitchen-stat-label">Pending</div>
+                        </div>
                     </div>
                     <div class="kitchen-stat cooking">
-                        <div class="kitchen-stat-value" id="stat-cooking">0</div>
-                        <div class="kitchen-stat-label">In Progress</div>
+                        <div class="kitchen-stat-icon">&#x1F525;</div>
+                        <div class="kitchen-stat-body">
+                            <div class="kitchen-stat-value" id="stat-cooking">0</div>
+                            <div class="kitchen-stat-label">In Progress</div>
+                        </div>
                     </div>
                     <div class="kitchen-stat done">
-                        <div class="kitchen-stat-value" id="stat-done">0</div>
-                        <div class="kitchen-stat-label">Done</div>
+                        <div class="kitchen-stat-icon">&#x2705;</div>
+                        <div class="kitchen-stat-body">
+                            <div class="kitchen-stat-value" id="stat-done">0</div>
+                            <div class="kitchen-stat-label">Done</div>
+                        </div>
                     </div>
                 </div>
 

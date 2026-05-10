@@ -244,35 +244,80 @@ body {
 }
 
 /* Stats Header */
-.kitchen-stats {
+.kitchen-stat {
+    flex: 1;
     display: flex;
-    justify-content: space-around;
+    flex-direction: row;        /* ← was column */
+    align-items: center;
+    justify-content: flex-start; /* ← was center */
+    gap: 12px;
     padding: 16px;
     background: #2d2d2d;
-    border-radius: 8px;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, transform 0.12s;
+    user-select: none;
+}
+
+.kitchen-stats {
+    display: flex;          /* ← this was lost */
+    flex-direction: row;    /* ← ensure horizontal */
+    gap: 12px;
     margin-bottom: 16px;
     width: 100%;
 }
 
-.kitchen-stat {
-    text-align: center;
+.kitchen-stat:hover {
+    background: #363636;
+    transform: translateY(-2px);
 }
-
+.kitchen-stat-icon {
+    font-size: 28px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+.kitchen-stat-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
 .kitchen-stat-value {
-    font-size: 32px;
-    font-weight: bold;
+    font-size: 28px;
+    font-weight: 600;
     color: #fff;
+    line-height: 1;
 }
-
 .kitchen-stat-label {
-    font-size: 12px;
+    font-size: 11px;
     color: #888;
     text-transform: uppercase;
+    letter-spacing: 0.06em;
 }
 
+/* color per state */
 .kitchen-stat.pending .kitchen-stat-value { color: #3498db; }
 .kitchen-stat.cooking .kitchen-stat-value { color: #f39c12; }
-.kitchen-stat.done .kitchen-stat-value { color: #27ae60; }
+.kitchen-stat.done    .kitchen-stat-value { color: #27ae60; }
+
+/* active state */
+.kitchen-stat.pending.active { border-color: #3498db; background: #0d1e30; }
+.kitchen-stat.cooking.active { border-color: #f39c12; background: #2a1e05; }
+.kitchen-stat.done.active    { border-color: #27ae60; background: #0d2115; }
+
+.kitchen-stat.active {
+    transform: translateY(-2px);
+}
+
+/* dim others when one is active */
+.kitchen-stats:has(.kitchen-stat.active) .kitchen-stat:not(.active) {
+    opacity: 0.45;
+}
+
+/* responsive */
+@media (max-width: 480px) {
+    .kitchen-stats { flex-direction: column; }
+}
 
 /* Sound notification indicator */
 .sound-indicator {
@@ -298,6 +343,12 @@ body {
     color: #888;
     padding: 60px;
     width: 100%;
+    grid-column: 1 / -1;        /* ← span all grid columns */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
 }
 
 .kitchen-empty-icon {

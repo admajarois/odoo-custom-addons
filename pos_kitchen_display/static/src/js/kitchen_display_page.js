@@ -9,12 +9,15 @@ publicWidget.registry.PosKitchenDisplayPage = publicWidget.Widget.extend({
     events: {
         "click #refresh-btn": "_onRefresh",
         "click .kitchen-order-btn": "_onOrderAction",
+        "click .kitchen-stat": "_onFilterClick",
     },
 
     init() {
         this._super(...arguments);
         this.pollingMs = 5000;
         this._timer = null;
+        this._allOrders = [];
+        this._activeFilter = null; // 'pending', 'in_progress', 'done' or null for all
     },
 
     start() {
@@ -37,6 +40,57 @@ publicWidget.registry.PosKitchenDisplayPage = publicWidget.Widget.extend({
         await this.loadOrders();
     },
 
+    _onFilterClick(ev) {
+        const stat = ev.currentTarget;
+
+        const classToFilter = {
+            pending: "pending",
+            cooking: "in_progress",
+            done: "done",
+        }
+
+        let clicked = null;
+        for (const [cls, filter] of Object.entries(classToFilter)) {
+            if(stat.classList.contains(cls)) {
+                clicked = filter;
+                break;
+            }
+        }
+        if (this._activeFilter === clicked) {
+            this._activeFilter = null;
+        } else {
+            this._activeFilter = clicked;
+        }
+
+        this._applyFilterAndRender();
+        this._updateActiveStatUI();
+    },
+
+    _applyFilterAndRender() {
+        const filtered = this._activeFilter
+            ? this._allOrders.filter(o => o.state === this._activeFilter)
+            : this._allOrders;
+        this.renderOrders(filtered);
+    },
+
+    _updateActiveStatUI() {
+        const filterToClass = {
+            pending: "pending",
+            in_progress: "cooking",
+            done: "done",
+        };
+
+        // Remove active from all, add to the selected one
+        this.el.querySelectorAll(".kitchen-stat").forEach(el => {
+            el.classList.remove("active");
+        });
+
+        if (this._activeFilter) {
+            const cls = filterToClass[this._activeFilter];
+            this.el.querySelector(`.kitchen-stat.${cls}`)?.classList.add("active");
+        }
+    },
+
     async _onOrderAction(ev) {
         ev.preventDefault();
         const btn = ev.currentTarget;
@@ -56,11 +110,20 @@ publicWidget.registry.PosKitchenDisplayPage = publicWidget.Widget.extend({
                 throw new Error(`HTTP ${response.status}`);
             }
             const orders = await response.json();
-            this.renderOrders(orders);
-            this.updateStats(orders);
+            this._allOrders = this.normalizeOrders(orders);  // <-- always cache full list
+            this._applyFilterAndRender();                     // <-- render respecting active filter
+            this.updateStats(this._allOrders);
         } catch (err) {
             console.error("Kitchen Display: failed to load orders", err);
         }
+    },
+
+    normalizeOrders(orders) {
+        return (orders || []).map(order => ({
+            ...order,
+            table_name: Array.isArray(order.table_id) ? order.table_id[1] : null,
+            partner_name: Array.isArray(order.partner_id) ? order.partner_id[1] : null,
+        }));
     },
 
     renderOrders(orders) {
