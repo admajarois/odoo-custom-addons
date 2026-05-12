@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ============================================================
+         MAIN KITCHEN DISPLAY PAGE TEMPLATE
+         Route: /kitchen/display?session_id=...
+         Controller passes: kitchen_session, orders_json (JSON string)
+    ============================================================ -->
+    <template id="kitchen_display_template" name="Kitchen Display">
+        <t t-call="web.layout">
+            <t t-set="title">Kitchen Display</t>
+            <t t-set="head">
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <t t-call-assets="web.assets_frontend"/>
+                <t t-call-assets="advance_kitchen.assets_kitchen_display"/>
+            </t>
+
+            <div id="akd-root" class="akd-root"
+                 t-att-data-session-id="kitchen_session and kitchen_session.id or ''"
+                 t-att-data-session-name="kitchen_session and kitchen_session.name or ''">
+
+                <!-- ── SIDEBAR ── -->
+                <t t-call="advance_kitchen.KitchenSidebar"/>
+
+                <!-- ── MAIN CONTENT ── -->
+                <main class="akd-main">
+
+                    <!-- ── TOP BAR (stat tabs + actions) ── -->
+                    <t t-call="advance_kitchen.KitchenTopbar"/>
+
+                    <!-- ── BOARD WRAPPER ── -->
+                    <div class="akd-board-wrap">
+
+                        <!-- ── KANBAN BOARD (4 columns) ── -->
+                        <div id="akd-board" class="akd-board">
+                            <!-- Columns are rendered by KitchenBoard JS component
+                                 which reads window.__KDS_ORDERS__ injected below -->
+                        </div>
+
+                        <!-- ── BOTTOM STATUS BAR ── -->
+                        <t t-call="advance_kitchen.KitchenBottomBar"/>
+
+                    </div>
+                </main>
+            </div>
+
+            <!-- Inject initial orders as JSON for JS to bootstrap from -->
+            <script type="text/javascript">
+                window.__KDS_ORDERS__ = <t t-raw="orders_json or '[]'"/>;
+                window.__KDS_SESSION__ = {
+                    id: <t t-esc="kitchen_session and kitchen_session.id or 0"/>,
+                    name: '<t t-esc="kitchen_session and kitchen_session.name or ''"  />'
+                };
+            </script>
+        </t>
+    </template>
+
+
+    <!-- ============================================================
+         SESSION SELECT PAGE
+         Shown when no session is active; lists available POS configs
+    ============================================================ -->
+    <template id="kitchen_session_select_template" name="Kitchen Session Select">
+        <t t-call="web.layout">
+            <t t-set="title">Kitchen Display — Select Session</t>
+            <t t-set="head">
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <t t-call-assets="web.assets_frontend"/>
+                <t t-call-assets="advance_kitchen.assets_kitchen_display"/>
+            </t>
+
+            <div class="akd-session-select">
+                <div class="akd-session-select-header">
+                    <div class="akd-session-select-logo">
+                        <span class="akd-logo-icon"><i class="fa fa-cutlery"/></span>
+                        <div>
+                            <strong>Kitchen Display</strong>
+                            <span>Select a session to begin</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="akd-session-grid">
+                    <t t-foreach="kitchens" t-as="kitchen" t-key="kitchen.id">
+                        <a class="akd-session-card" t-att-href="'/kitchen/start?kitchen_id=%s' % kitchen.id">
+                            <div class="akd-session-card-icon"><i class="fa fa-desktop"/></div>
+                            <div class="akd-session-card-name">
+                                <t t-esc="kitchen.name"/>
+                            </div>
+                            <div class="akd-session-card-action">Open Display →</div>
+                        </a>
+                    </t>
+                    <t t-if="not kitchens">
+                        <div class="akd-session-empty">
+                            <div class="akd-session-empty-icon"><i class="fa fa-cutlery"/></div>
+                            <div>No POS sessions available.<br/>Please open a POS session first.</div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+
+    <!-- ============================================================
+         SIDEBAR
+         Contains: logo, order filters, station filters, settings
+    ============================================================ -->
+    <template id="KitchenSidebar" name="Kitchen Sidebar">
+        <aside class="akd-sidebar">
+
+            <!-- Logo + live indicator -->
+            <div class="akd-sidebar-logo">
+                <div class="akd-sidebar-logo-icon"><i class="fa fa-cutlery"/></div>
+                <div class="akd-sidebar-logo-text">
+                    <strong>Kitchen Display</strong>
+                    <span class="akd-live-badge">Live</span>
+                </div>
+            </div>
+
+            <!-- Order state filters -->
+            <div class="akd-sidebar-section">
+                <div class="akd-sidebar-section-label">Orders</div>
+
+                <div class="akd-nav-item active" data-filter-state="all">
+                    <span class="akd-nav-icon"><i class="fa fa-list"/></span>
+                    <span class="akd-nav-label">All Orders</span>
+                    <span class="akd-nav-badge" id="nav-count-all">0</span>
+                </div>
+                <div class="akd-nav-item" data-filter-state="pending">
+                    <span class="akd-nav-icon"><i class="fa fa-file-text-o"/></span>
+                    <span class="akd-nav-label">New</span>
+                    <span class="akd-nav-badge" id="nav-count-new">0</span>
+                </div>
+                <div class="akd-nav-item" data-filter-state="in_progress">
+                    <span class="akd-nav-icon"><i class="fa fa-clock-o"/></span>
+                    <span class="akd-nav-label">Preparing</span>
+                    <span class="akd-nav-badge" id="nav-count-preparing">0</span>
+                </div>
+                <div class="akd-nav-item" data-filter-state="ready">
+                    <span class="akd-nav-icon"><i class="fa fa-check-circle"/></span>
+                    <span class="akd-nav-label">Ready</span>
+                    <span class="akd-nav-badge" id="nav-count-ready">0</span>
+                </div>
+                <div class="akd-nav-item" data-filter-state="done">
+                    <span class="akd-nav-icon"><i class="fa fa-check-square"/></span>
+                    <span class="akd-nav-label">Completed</span>
+                    <span class="akd-nav-badge" id="nav-count-done">0</span>
+                </div>
+                <div class="akd-nav-item" data-filter-state="cancelled">
+                    <span class="akd-nav-icon"><i class="fa fa-times-circle"/></span>
+                    <span class="akd-nav-label">Cancelled</span>
+                    <span class="akd-nav-badge" id="nav-count-cancelled">0</span>
+                </div>
+            </div>
+
+            <!-- Station filters (populated from DB via JS or static) -->
+            <div class="akd-sidebar-section" id="akd-stations-section">
+                <div class="akd-sidebar-section-label">Stations</div>
+
+                <div class="akd-nav-item active" data-filter-station="all">
+                    <span class="akd-nav-icon"><i class="fa fa-map-marker"/></span>
+                    <span class="akd-nav-label">All Stations</span>
+                    <span class="akd-nav-badge" id="nav-count-stations-all">0</span>
+                </div>
+                <!-- Additional station items injected by JS from __KDS_STATIONS__ -->
+            </div>
+
+            <!-- Settings link -->
+            <div class="akd-sidebar-bottom">
+                <a class="akd-settings-btn" href="/web#action=advance_kitchen.action_kitchen_config">
+                    <i class="fa fa-cog"/> Settings
+                </a>
+            </div>
+
+        </aside>
+    </template>
+
+
+    <!-- ============================================================
+         TOP BAR
+         Contains: stat tabs (New / Preparing / Ready / Completed)
+                   + action buttons (sound, filter, search, more)
+    ============================================================ -->
+    <template id="KitchenTopbar" name="Kitchen Topbar">
+        <div class="akd-topbar">
+
+            <!-- Stat tabs — click to highlight that column -->
+            <button class="akd-tab active" data-tab-state="pending" id="tab-new">
+                <span class="akd-tab-icon"><i class="fa fa-file-text-o"/></span>
+                <div class="akd-tab-body">
+                    <div class="akd-tab-count" id="tab-count-new">0</div>
+                    <div class="akd-tab-label">New</div>
+                </div>
+            </button>
+
+            <button class="akd-tab" data-tab-state="in_progress" id="tab-preparing">
+                <span class="akd-tab-icon"><i class="fa fa-clock-o"/></span>
+                <div class="akd-tab-body">
+                    <div class="akd-tab-count" id="tab-count-preparing">0</div>
+                    <div class="akd-tab-label">Preparing</div>
+                </div>
+            </button>
+
+            <button class="akd-tab" data-tab-state="ready" id="tab-ready">
+                <span class="akd-tab-icon"><i class="fa fa-check-circle"/></span>
+                <div class="akd-tab-body">
+                    <div class="akd-tab-count" id="tab-count-ready">0</div>
+                    <div class="akd-tab-label">Ready</div>
+                </div>
+            </button>
+
+            <button class="akd-tab" data-tab-state="done" id="tab-done">
+                <span class="akd-tab-icon"><i class="fa fa-cutlery"/></span>
+                <div class="akd-tab-body">
+                    <div class="akd-tab-count" id="tab-count-done">0</div>
+                    <div class="akd-tab-label">Completed</div>
+                </div>
+            </button>
+
+            <!-- Right-side action buttons -->
+            <div class="akd-topbar-right">
+                <button class="akd-icon-btn" id="btn-sound" title="Toggle sound"><i class="fa fa-bell"/></button>
+                <button class="akd-filter-btn" id="btn-filter"><i class="fa fa-filter"/> Filter</button>
+                <button class="akd-icon-btn" id="btn-search" title="Search orders"><i class="fa fa-search"/></button>
+                <button class="akd-icon-btn" id="btn-more" title="More options"><i class="fa fa-ellipsis-v"/></button>
+            </div>
+
+        </div>
+    </template>
+
+
+    <!-- ============================================================
+         BOTTOM STATUS BAR
+         Contains: completed chips strip + sync status + hold/recall
+    ============================================================ -->
+    <template id="KitchenBottomBar" name="Kitchen Bottom Bar">
+        <div class="akd-bottom">
+
+            <!-- Completed orders strip -->
+            <div class="akd-completed-strip">
+                <span class="akd-completed-label"><i class="fa fa-check-circle"/> Completed Orders</span>
+                <div class="akd-completed-chips" id="akd-completed-chips">
+                    <!-- Chips injected by JS -->
+                </div>
+                <button class="akd-view-all-btn" id="btn-view-all">View All</button>
+            </div>
+
+            <!-- Sync status -->
+            <div class="akd-sync-status">
+                <span class="akd-sync-dot" id="akd-sync-dot"></span>
+                <span id="akd-sync-time">Last synced: --:--:--</span>
+                <span class="akd-sync-label"><i class="fa fa-sync"/> Auto sync ON</span>
+            </div>
+
+            <!-- Hold / Recall actions -->
+            <button class="akd-hold-btn" id="btn-hold"><i class="fa fa-pause"/> Hold</button>
+            <button class="akd-recall-btn" id="btn-recall"><i class="fa fa-undo"/> Recall</button>
+
+        </div>
+    </template>
+
+
+    <!-- ============================================================
+         BOARD (4 Kanban columns)
+         Called from JS; also usable as a server-rendered fallback
+    ============================================================ -->
+    <template id="KitchenBoard" name="Kitchen Board">
+        <t t-call="advance_kitchen.KitchenColumn">
+            <t t-set="col_state"  t-value="'pending'"/>
+            <t t-set="col_label"  t-value="'New'"/>
+            <t t-set="col_orders" t-value="grouped.get('pending', [])"/>
+        </t>
+        <t t-call="advance_kitchen.KitchenColumn">
+            <t t-set="col_state"  t-value="'in_progress'"/>
+            <t t-set="col_label"  t-value="'Preparing'"/>
+            <t t-set="col_orders" t-value="grouped.get('in_progress', [])"/>
+        </t>
+        <t t-call="advance_kitchen.KitchenColumn">
+            <t t-set="col_state"  t-value="'ready'"/>
+            <t t-set="col_label"  t-value="'Ready'"/>
+            <t t-set="col_orders" t-value="grouped.get('ready', [])"/>
+        </t>
+        <t t-call="advance_kitchen.KitchenColumn">
+            <t t-set="col_state"  t-value="'done'"/>
+            <t t-set="col_label"  t-value="'Completed'"/>
+            <t t-set="col_orders" t-value="grouped.get('done', [])"/>
+        </t>
+    </template>
+
+
+    <!-- ============================================================
+         COLUMN
+         Variables expected: col_state, col_label, col_orders
+    ============================================================ -->
+    <template id="KitchenColumn" name="Kitchen Column">
+        <div class="akd-col" t-att-data-col-state="col_state">
+
+            <!-- Column header -->
+            <div class="akd-col-header">
+                <div class="akd-col-title">
+                    <span class="akd-col-indicator"></span>
+                    <t t-esc="col_label"/>
+                </div>
+                <div class="akd-col-count">
+                    <t t-esc="len(col_orders) if col_orders else 0"/>
+                </div>
+            </div>
+
+            <!-- Column body: order cards or empty state -->
+            <div class="akd-col-body">
+                <t t-if="col_orders">
+                    <t t-foreach="col_orders" t-as="order" t-key="order.id">
+                        <t t-call="advance_kitchen.KitchenOrderCard">
+                            <t t-set="order" t-value="order"/>
+                        </t>
+                    </t>
+                </t>
+                <t t-else="">
+                    <div class="akd-col-empty">
+                        <div class="akd-col-empty-icon"><i class="fa fa-cutlery"/></div>
+                        <div class="akd-col-empty-text">No orders</div>
+                    </div>
+                </t>
+            </div>
+
+        </div>
+    </template>
+
+
+    <!-- ============================================================
+         ORDER CARD
+         Variable expected: order (kitchen.order record / dict)
+    ============================================================ -->
+    <template id="KitchenOrderCard" name="Kitchen Order Card">
+        <div class="akd-card"
+             t-att-data-order-id="order.id"
+             t-att-data-order-state="order.state">
+
+            <!-- Coloured top accent bar -->
+            <div class="akd-card-top-bar"></div>
+
+            <!-- Card header: order number + elapsed time + state badge -->
+            <div class="akd-card-header">
+                <div>
+                    <div class="akd-card-id">
+                        <t t-esc="order.name or ''"/>
+                    </div>
+                    <span class="akd-card-badge">
+                        <t t-if="order.state == 'pending'">NEW</t>
+                        <t t-elif="order.state == 'in_progress'">PREPARING</t>
+                        <t t-elif="order.state == 'ready'">READY</t>
+                        <t t-elif="order.state == 'done'">DONE</t>
+                        <t t-else=""><t t-esc="(order.state or '').upper()"/></t>
+                    </span>
+                </div>
+                <div class="akd-card-time" t-att-data-order-date="order.order_date">
+                    <!-- Elapsed time filled by JS formatElapsed() -->
+                </div>
+            </div>
+
+            <!-- Table + order type meta row -->
+            <div class="akd-card-meta">
+                <span class="akd-card-meta-item">
+                    <i class="fa fa-calendar"/> <t t-esc="order.table_name or 'No Table'"/>
+                </span>
+                <span class="akd-card-meta-item">
+                    <i class="fa fa-user"/> <t t-esc="order.order_type or 'Dine In'"/>
+                </span>
+            </div>
+
+            <!-- Order time -->
+            <div class="akd-card-order-time">
+                Order: <t t-esc="order.order_date_str or ''"/>
+            </div>
+
+            <!-- Order lines -->
+            <div class="akd-card-lines">
+                <t t-foreach="order.line_ids or []" t-as="line" t-key="line.id">
+                    <div class="akd-card-line"
+                         t-att-class="'akd-card-line--done' if line.state == 'done' else ('akd-card-line--cancelled' if line.state == 'cancelled' else '')">
+                        <div class="akd-card-line-info">
+                            <div class="akd-card-line-name">
+                                <t t-esc="line.product_name or ''"/>
+                            </div>
+                            <t t-if="line.note">
+                                <div class="akd-card-line-note">
+                                    <t t-esc="line.note"/>
+                                </div>
+                            </t>
+                        </div>
+                        <div class="akd-card-line-qty">
+                            x<t t-esc="int(line.quantity) if line.quantity else 0"/>
+                        </div>
+                    </div>
+                </t>
+            </div>
+
+            <!-- Order-level note -->
+            <t t-if="order.note">
+                <div class="akd-card-note">
+                    <span class="akd-card-note-label">Note:</span>
+                    <t t-esc="order.note"/>
+                </div>
+            </t>
+
+            <!-- Action buttons: change by state -->
+            <div class="akd-card-actions">
+                <t t-if="order.state == 'pending'">
+                    <button class="akd-btn akd-btn--start"
+                            data-action="start"
+                            t-att-data-id="order.id"><i class="fa fa-play"/> Start</button>
+                    <button class="akd-btn-icon"
+                            data-action="note"
+                            t-att-data-id="order.id"
+                            title="View note"><i class="fa fa-sticky-note"/></button>
+                </t>
+                <t t-elif="order.state == 'in_progress'">
+                    <button class="akd-btn akd-btn--bump"
+                            data-action="ready"
+                            t-att-data-id="order.id"><i class="fa fa-arrow-up"/> Bump</button>
+                    <button class="akd-btn akd-btn--done"
+                            data-action="done"
+                            t-att-data-id="order.id"><i class="fa fa-check"/> Done</button>
+                </t>
+                <t t-elif="order.state == 'ready'">
+                    <button class="akd-btn akd-btn--serve"
+                            data-action="done"
+                            t-att-data-id="order.id"><i class="fa fa-bell"/> Serve</button>
+                </t>
+                <t t-else="">
+                    <span class="akd-card-done-badge">✔ Completed</span>
+                </t>
+                <button class="akd-btn-cancel"
+                        data-action="cancel"
+                        t-att-data-id="order.id"
+                        title="Cancel order"><i class="fa fa-times"/></button>
+            </div>
+
+        </div>
+    </template>
+
+</odoo>

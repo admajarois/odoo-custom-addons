@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_advance_kitchen_root" name="Kitchen" sequence="60">
+        <menuitem
+            id="menu_advance_kitchen_dashboard"
+            name="Dashboard"
+            action="advance_kitchen.action_advance_kitchen"
+            sequence="1"/>
+        <menuitem
+            id="menu_advance_kitchen_order"
+            name="Order"
+            sequence="2">
+            <menuitem
+                id="menu_advance_kitchen_order_list"
+                name="Orders"
+                action="action_pos_kitchen_order"
+                sequence="1"/>
+            
+             <menuitem
+                id="menu_advance_kitchen_session"
+                name="Kitchen Sessions"
+                action="action_advance_kitchen_session"
+                sequence="2"/>
+        </menuitem>
+    </menuitem>
+</odoo>

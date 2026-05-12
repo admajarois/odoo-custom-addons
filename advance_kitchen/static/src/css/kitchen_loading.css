@@ -1,0 +1,142 @@
+/* =============================================================
+   advance_kitchen — Kitchen Loading Page Stylesheet
+   File: static/src/css/kitchen_loading.css
+
+   IMPORTANT: All rules are scoped to .akl-* (advance-kitchen-loading)
+   so they NEVER bleed into kitchen_display.css which owns body/html.
+   ============================================================= */
+
+/* ── Full-page wrapper ──────────────────────────────────────── */
+.akl-page {
+    position: fixed;
+    inset: 0;
+    background: #0d0d10;
+    color: #f0f0f4;
+    font-family: 'DM Sans', 'Inter', system-ui, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    overflow: hidden;
+    z-index: 9999;
+}
+
+/* ── Background grid (matches kitchen_display.css aesthetic) ── */
+.akl-page::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(59, 130, 246, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59, 130, 246, 0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+}
+
+/* ── Loading block ──────────────────────────────────────────── */
+.akl-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.8rem;
+    position: relative;
+}
+
+/* ── Kitchen icon ───────────────────────────────────────────── */
+.akl-icon {
+    font-size: 4rem;
+    animation: akl-pulse 1.8s ease-in-out infinite;
+}
+
+/* ── Spinner rings ──────────────────────────────────────────── */
+.akl-spinner {
+    position: relative;
+    width: 80px;
+    height: 80px;
+}
+
+.akl-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 4px solid transparent;
+    animation: akl-spin 1.1s linear infinite;
+}
+.akl-ring:nth-child(1) { border-top-color:    #3b82f6; animation-duration: 1.1s; }
+.akl-ring:nth-child(2) { border-right-color:  #6366f1; inset: 10px; animation-duration: 0.85s; animation-direction: reverse; }
+.akl-ring:nth-child(3) { border-bottom-color: #818cf8; inset: 20px; animation-duration: 1.4s; }
+
+/* ── Text ───────────────────────────────────────────────────── */
+.akl-text {
+    text-align: center;
+}
+.akl-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #f0f0f4;
+    letter-spacing: .02em;
+}
+.akl-subtitle {
+    font-size: 0.95rem;
+    color: #8b8b9e;
+    margin-top: .35rem;
+}
+.akl-status {
+    font-size: 0.82rem;
+    color: #3b82f6;
+    min-height: 1.4em;
+    transition: opacity .25s;
+}
+
+/* ── Error card ─────────────────────────────────────────────── */
+.akl-error {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    background: #18181f;
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    border-radius: 14px;
+    padding: 1.75rem 2.25rem;
+    max-width: 380px;
+    text-align: center;
+    position: relative;
+}
+.akl-error.akl-visible { display: flex; }
+
+.akl-error-icon { font-size: 2rem; }
+.akl-error p    { color: #fca5a5; font-size: .9rem; line-height: 1.5; }
+
+.akl-retry-btn {
+    margin-top: .25rem;
+    padding: .55rem 1.6rem;
+    border-radius: 8px;
+    border: none;
+    background: #3b82f6;
+    color: #fff;
+    font-size: .9rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background .2s;
+}
+.akl-retry-btn:hover { background: #2563eb; }
+
+.akl-back-link {
+    color: #55555f;
+    font-size: .8rem;
+    text-decoration: none;
+    margin-top: .1rem;
+    transition: color .2s;
+}
+.akl-back-link:hover { color: #8b8b9e; }
+
+/* ── Animations ─────────────────────────────────────────────── */
+@keyframes akl-spin {
+    to { transform: rotate(360deg); }
+}
+@keyframes akl-pulse {
+    0%, 100% { transform: scale(1);   opacity: 1;   }
+    50%       { transform: scale(1.1); opacity: .7; }
+}

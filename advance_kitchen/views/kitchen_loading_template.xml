@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="kitchen_loading_template" name="Kitchen Display – Loading">
+        <t t-call="web.layout">
+            <t t-set="head">
+                <!--
+                    Load ONLY the loading CSS — never the kitchen_display.css.
+                    kitchen_display.css owns body/html rules; loading CSS is
+                    fully scoped to .akl-* so there is zero bleed either way.
+                -->
+                <link rel="stylesheet" type="text/css"
+                      href="/advance_kitchen/static/src/css/kitchen_loading.css"/>
+            </t>
+
+            <!--
+                .akl-page is position:fixed; inset:0 so it covers the
+                full viewport regardless of what web.layout adds around it.
+            -->
+            <div class="akl-page">
+
+                <!-- Loading state -->
+                <div class="akl-loading" id="akl-loading">
+                    <div class="akl-icon"><i class="fa fa-cutlery"/></div>
+
+                    <div class="akl-spinner">
+                        <div class="akl-ring"/>
+                        <div class="akl-ring"/>
+                        <div class="akl-ring"/>
+                    </div>
+
+                    <div class="akl-text">
+                        <div class="akl-title">Opening Kitchen Display</div>
+                        <div class="akl-subtitle" t-esc="kitchen.name"/>
+                    </div>
+
+                    <div class="akl-status" id="akl-status">Starting session…</div>
+                </div>
+
+                <!-- Error state (hidden until JS shows it) -->
+                <div class="akl-error" id="akl-error">
+                    <div class="akl-error-icon"><i class="fa fa-exclamation-triangle"/></div>
+                    <p id="akl-error-msg">Something went wrong while opening the session.</p>
+                    <button class="akl-retry-btn" onclick="aklRetry()">Try Again</button>
+                    <a class="akl-back-link" href="/kitchen">← Back to kitchen list</a>
+                </div>
+
+                <!-- Data bridge: passes server values to JS via data-attributes -->
+                <div id="akl-data"
+                     t-att-data-kitchen-id="kitchen.id"
+                     t-att-data-kitchen-name="kitchen.name"
+                     style="display:none;"/>
+
+            </div>
+
+            <!-- JS loaded at end of body so DOM is ready -->
+            <script type="text/javascript"
+                    src="/advance_kitchen/static/src/js/kitchen_loading.js"/>
+        </t>
+    </template>
+</odoo>

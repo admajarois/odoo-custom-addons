@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Kitchen Order List View -->
+    <record id="view_pos_kitchen_order_list" model="ir.ui.view">
+        <field name="name">pos.kitchen.order.list</field>
+        <field name="model">pos.kitchen.order</field>
+        <field name="arch" type="xml">
+            <list decoration-info="state == 'pending'" decoration-warning="state == 'in_progress'" decoration-danger="state == 'cancelled'" decoration-success="state == 'done'" default_order="create_date desc">
+                <field name="name"/>
+                <field name="order_date"/>
+                <field name="table_id"/>
+                <field name="partner_id"/>
+                <field name="user_id"/>
+                <field name="state"/>
+                <field name="priority"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Kitchen Order Form View -->
+    <record id="view_pos_kitchen_order_form" model="ir.ui.view">
+        <field name="name">pos.kitchen.order.form</field>
+        <field name="model">pos.kitchen.order</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_start" string="Start" type="object" invisible="state != 'pending'" class="btn-primary"/>
+                    <button name="action_done" string="Done" type="object" invisible="state != 'in_progress'" class="btn-success"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state != 'pending'" class="btn-danger"/>
+                    <button name="action_reset" string="Reset" type="object" invisible="state != 'done'" />
+                    <field name="state" widget="statusbar" statusbar_visible="pending,in_progress,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="table_id"/>
+                        </group>
+                        <group>
+                            <field name="order_date"/>
+                            <field name="user_id" readonly="1"/>
+                            <field name="priority"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="order_lines" string="Order Lines">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="quantity"/>
+                                    <field name="product_uom_id"/>
+                                    <field name="note"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                            <field name="note" widget="html"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+
+    <!-- Kitchen Order Search View -->
+    <record id="view_pos_kitchen_order_search" model="ir.ui.view">
+        <field name="name">pos.kitchen.order.search</field>
+        <field name="model">pos.kitchen.order</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="table_id"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Kitchen Order Action -->
+    <record id="action_pos_kitchen_order" model="ir.actions.act_window">
+        <field name="name">Kitchen Orders</field>
+        <field name="res_model">pos.kitchen.order</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

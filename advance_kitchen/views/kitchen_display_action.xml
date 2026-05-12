@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_kitchen_display_url" model="ir.actions.act_url">
+        <field name="name">Kitchen Display</field>
+        <field name="url">/kitchen</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

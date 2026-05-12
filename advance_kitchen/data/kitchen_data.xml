@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <data noupdate="1">
+        <record id="seq_pos_kitchen_order" model="ir.sequence">
+            <field name="name">POS Kitchen Order Sequence</field>
+            <field name="code">pos.kitchen.order</field>
+            <field name="prefix">KO/</field>
+            <field name="padding">5</field>
+        </record>
+
+        <!-- Sequence for Kitchen Session -->
+        <record id="seq_advance_kitchen_session" model="ir.sequence">
+            <field name="name">Kitchen Session Sequence</field>
+            <field name="code">kitchen.kitchen.session</field>
+            <field name="prefix">KS/</field>
+            <field name="padding">5</field>
+        </record>
+
+        
+    </data>
+    
+
+</odoo>

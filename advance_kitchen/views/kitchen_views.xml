@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_advance_kitchen_kanban" model="ir.ui.view">
+        <field name="name">kitchen.kitchen.kanban</field>
+        <field name="model">kitchen.kitchen</field>
+        <field name="arch" type="xml">
+            <kanban create="false" class="o_pos_kanban" can_open="0">
+                <field name="name"/>
+                <field name="company_id"/>
+                <field name="current_session_id"/>
+                <field name="current_user_id"/>
+                <field name="active"/>
+                <templates>
+                    <t t-name="card">
+                        <div name="card_title" class="mb-4 ms-2">
+                            <field name="name" class="fw-bold fs-4 d-block"/>
+                        </div>
+                        <div class="row g-0 pb-4 ms-2 mt-auto">
+                            <div class="col-12 col-md-6 d-flex flex-wrap align-items-center gap-2 mb-2 mb-md-0">
+                                <button type="object" class="btn btn-sm btn-primary" name="open_kitchen_session">
+                                    <t t-if="!record.current_session_id.raw_value">Open Session</t>
+                                    <t t-elif="record.current_session_id.raw_value">Continue Session</t>
+                                </button>
+                            </div>
+                            <div class="col-12 col-md-6"></div>
+                        </div>
+                        <field name="current_user_id" widget="many2one_avatar_user" class="ms-auto mt-auto"/>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_advance_kitchen_list" model="ir.ui.view">
+        <field name="name">kitchen.kitchen.list</field>
+        <field name="model">kitchen.kitchen</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="company_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_advance_kitchen_form" model="ir.ui.view">
+        <field name="name">kitchen.kitchen.form</field>
+        <field name="model">kitchen.kitchen</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="company_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_advance_kitchen" model="ir.actions.act_window">
+        <field name="name">Kitchens</field>
+        <field name="res_model">kitchen.kitchen</field>
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+
+</odoo>
