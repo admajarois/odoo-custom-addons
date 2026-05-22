@@ -1,6 +1,6 @@
 /* =============================================================
    advance_kitchen — Kitchen Loading Page Script
-   File: static/src/js/kitchen_loading.js
+   File: static/src/js/loading_component.js
 
    Plain vanilla JS wrapped in an IIFE.
    NOT an @odoo-module — this runs on a public HTTP page before

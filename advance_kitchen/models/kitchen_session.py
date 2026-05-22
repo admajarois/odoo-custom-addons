@@ -23,7 +23,7 @@ class AdvanceKitchenSession(models.Model):
     def create(self, vals_list):
         for vals in vals_list:
             if vals.get("name", "New") == "New":
-                vals["name"] = self.env["ir.sequence"].next_by_code("kitchen.session") or "New"
+                vals["name"] = self.env["ir.sequence"].next_by_code("kitchen.session")
         return super().create(vals_list)
 
     @api.model
@@ -38,7 +38,7 @@ class AdvanceKitchenSession(models.Model):
             "state": "opened",
         })
 
-    @api.model
     def action_close(self):
+        self.ensure_one()
         self.write({"state": "closed", "stop_at": fields.Datetime.now()})
         return True

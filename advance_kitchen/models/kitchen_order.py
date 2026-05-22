@@ -18,6 +18,7 @@ class PosKitchenOrder(models.Model):
     kitchen_session_id = fields.Many2one('kitchen.session', string='Kitchen Session', readonly=True, index=True)
     table_id = fields.Many2one('restaurant.table', string='Table')
     partner_id = fields.Many2one('res.partner', string='Customer')
+    customer_name = fields.Char(string='Customer Name')
     order_date = fields.Datetime(string='Order Date', default=fields.Datetime.now)
     user_id = fields.Many2one('res.users', string='Cashier', default=lambda self: self.env.user)
     state = fields.Selection([
@@ -109,6 +110,7 @@ class PosKitchenOrder(models.Model):
                 'pos_order_id': pos_order_id,
                 'table_id': order_data.get('table_id') or False,
                 'partner_id': order_data.get('partner_id') or False,
+                'customer_name': order_data.get('customer_name') or order_data.get('partner_name') or '',
                 'order_date': fields.Datetime.now(),
                 'user_id': self.env.user.id,
                 'note': order_data.get('note', ''),
@@ -170,6 +172,7 @@ class PosKitchenOrder(models.Model):
                 line_vals = {
                     'order_id': kitchen_order.id,
                     'product_id': line.get('product_id') or False,
+                    'product_name': product_name,
                     'quantity': line.get('quantity', 1) or 1,
                     'note': note,
                     'state': 'pending',
@@ -229,36 +232,57 @@ class PosKitchenOrderLine(models.Model):
 
     order_id = fields.Many2one('pos.kitchen.order', string='Order', required=True, ondelete='cascade')
     product_id = fields.Many2one('product.product', string='Product')
+    product_name = fields.Char(string='Product Name', required=True)
     product_uom_id = fields.Many2one('uom.uom', string='Unit of Measure', related='product_id.uom_id', readonly=True)
     quantity = fields.Float(string='Quantity', default=1.0, required=True)
+    date_done = fields.Datetime(string='Done Date')
     note = fields.Char(string='Special Instructions')
     state = fields.Selection([
         ('pending', 'Pending'),
         ('cooking', 'Cooking'),
+        ('ready', 'Ready'),
         ('done', 'Done'),
         ('cancelled', 'Cancelled')
     ], string='Status', default='pending', tracking=True)
 
+    def _sync_parent_order_state(self):
+        for order in self.mapped('order_id'):
+            states = set(order.line_ids.mapped('state'))
+            if not states:
+                continue
+            if states.issubset({'done', 'cancelled'}):
+                order.write({'state': 'done'})
+            elif 'cooking' in states:
+                order.write({'state': 'in_progress'})
+            elif 'ready' in states:
+                order.write({'state': 'ready'})
+            else:
+                order.write({'state': 'pending'})
+
     def action_start_cooking(self):
         self.write({'state': 'cooking'})
+        self._sync_parent_order_state()
         return True
 
     def action_done(self):
         self.write({
             'state': 'done',
+            'date_done': fields.Datetime.now(),
         })
-        if self.order_id.line_ids.filtered(lambda l: l.state not in ['done', 'cancelled']):
-            return True
-        self.order_id.write({'state': 'done'})
+        self._sync_parent_order_state()
+        return True
+
+    def action_ready(self):
+        self.write({'state': 'ready'})
+        self._sync_parent_order_state()
         return True
 
     def action_cancel(self):
         self.write({'state': 'cancelled'})
-        if self.order_id.line_ids.filtered(lambda l: l.state not in ['done', 'cancelled']):
-            return True
-        self.order_id.write({'state': 'cancelled'})
+        self._sync_parent_order_state()
         return True
 
     def action_reset(self):
-        self.write({'state': 'pending', 'done_date': False})
+        self.write({'state': 'pending', 'date_done': False})
+        self._sync_parent_order_state()
         return True

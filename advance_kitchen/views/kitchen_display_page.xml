@@ -44,14 +44,109 @@
                 </main>
             </div>
 
+            <div id="akd-modal-backdrop" class="akd-modal-backdrop">
+                <div id="akd-search-modal" class="akd-modal">
+                    <div class="akd-modal-header">
+                        <h3>Search</h3>
+                        <button type="button" class="akd-modal-close" data-modal-close="search">&#215;</button>
+                    </div>
+                    <div class="akd-modal-body">
+                        <input id="akd-search-input" class="akd-modal-input" type="text" placeholder="Search item, order, table, customer..." />
+                    </div>
+                    <div class="akd-modal-footer">
+                        <button type="button" class="akd-btn akd-btn--ghost" data-modal-close="search">Cancel</button>
+                        <button type="button" class="akd-btn akd-btn--start" id="akd-search-apply">Apply</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div id="akd-toast" class="akd-toast" aria-live="polite"></div>
+
             <!-- Inject initial orders as JSON for JS to bootstrap from -->
             <script type="text/javascript">
                 window.__KDS_ORDERS__ = <t t-raw="orders_json or '[]'"/>;
                 window.__KDS_SESSION__ = {
                     id: <t t-esc="kitchen_session and kitchen_session.id or 0"/>,
-                    name: '<t t-esc="kitchen_session and kitchen_session.name or ''"  />'
+                    name: '<t t-esc="kitchen_session and kitchen_session.name or ''"  />',
+                    start_at: '<t t-esc="kitchen_session and kitchen_session.start_at or ''" />'
                 };
             </script>
+        </t>
+    </template>
+
+    <template id="kitchen_completed_template" name="Kitchen Completed Items">
+        <t t-call="web.layout">
+            <t t-set="title">Completed Items</t>
+            <t t-set="head">
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <t t-call-assets="web.assets_frontend"/>
+                <t t-call-assets="advance_kitchen.assets_kitchen_display"/>
+            </t>
+
+            <div class="akd-completed-page" id="akd-completed-root" t-att-data-session-id="kitchen_session.id">
+                <div class="akd-completed-page-header">
+                    <div>
+                        <h2>Completed Items</h2>
+                        <p>
+                            Session:
+                            <strong><t t-esc="kitchen_session.name"/></strong>
+                        </p>
+                    </div>
+                    <a t-att-href="'/kitchen/display?session_id=%s' % kitchen_session.id" class="akd-btn akd-btn--ghost akd-completed-back">
+                        <i class="fa fa-arrow-left"/> Back to Display
+                    </a>
+                </div>
+
+                <form class="akd-completed-search" method="get" action="/kitchen/completed" id="akd-completed-search-form">
+                    <input type="hidden" name="session_id" t-att-value="kitchen_session.id"/>
+                    <input
+                        type="text"
+                        name="q"
+                        id="akd-completed-search-input"
+                        class="akd-modal-input"
+                        t-att-value="search_query"
+                        placeholder="Search by order, item, table, customer..."
+                    />
+                    <button type="submit" class="akd-btn akd-btn--start akd-completed-action-btn">Search</button>
+                    <button type="button" id="akd-completed-search-reset" class="akd-btn akd-btn--ghost akd-completed-action-btn">Reset</button>
+                </form>
+                <div class="akd-completed-live-status" id="akd-completed-live-status">Live updates ON</div>
+
+                <div class="akd-completed-table-wrap">
+                    <table class="akd-completed-table">
+                        <thead>
+                            <tr>
+                                <th>Order</th>
+                                <th>Item</th>
+                                <th>Table</th>
+                                <th>Customer</th>
+                                <th>Qty</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="akd-completed-tbody">
+                            <t t-if="completed_items">
+                                <t t-foreach="completed_items" t-as="item" t-key="item['order_name'] + item['product_name'] + item['order_date']">
+                                    <tr>
+                                        <td><t t-esc="item['order_name'] or '-'"/></td>
+                                        <td><t t-esc="item['product_name'] or '-'"/></td>
+                                        <td><t t-esc="item['table_name'] or '-'"/></td>
+                                        <td><t t-esc="item['customer_name'] or '-'"/></td>
+                                        <td><t t-esc="item['quantity']"/></td>
+                                        <td><t t-esc="item['order_date'] or '-'"/></td>
+                                    </tr>
+                                </t>
+                            </t>
+                            <t t-else="">
+                                <tr>
+                                    <td colspan="6" class="akd-completed-empty">No completed items found.</td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </t>
     </template>
 
@@ -90,6 +185,11 @@
                             <div class="akd-session-card-action">Open Display →</div>
                         </a>
                     </t>
+                    <a class="akd-session-card" href="">
+                        <div class="akd-session-card-icon"><i class=""/></div>
+                        <div class="akd-session-card-name">Backend</div>
+                        <div class="akd-session-card-action">→</div>
+                    </a>
                     <t t-if="not kitchens">
                         <div class="akd-session-empty">
                             <div class="akd-session-empty-icon"><i class="fa fa-cutlery"/></div>
@@ -166,13 +266,6 @@
                 <!-- Additional station items injected by JS from __KDS_STATIONS__ -->
             </div>
 
-            <!-- Settings link -->
-            <div class="akd-sidebar-bottom">
-                <a class="akd-settings-btn" href="/web#action=advance_kitchen.action_kitchen_config">
-                    <i class="fa fa-cog"/> Settings
-                </a>
-            </div>
-
         </aside>
     </template>
 
@@ -184,6 +277,13 @@
     ============================================================ -->
     <template id="KitchenTopbar" name="Kitchen Topbar">
         <div class="akd-topbar">
+            <button class="akd-icon-btn akd-sidebar-toggle" id="btn-sidebar-toggle" title="Toggle sidebar">
+                <i class="fa fa-bars"/>
+            </button>
+            <div class="akd-session-pill" title="Active kitchen session">
+                <i class="fa fa-cutlery"/>
+                <span><t t-esc="kitchen_session and kitchen_session.kitchen_id and kitchen_session.kitchen_id.name or kitchen_session.name or 'Kitchen'"/></span>
+            </div>
 
             <!-- Stat tabs — click to highlight that column -->
             <button class="akd-tab active" data-tab-state="pending" id="tab-new">
@@ -220,10 +320,23 @@
 
             <!-- Right-side action buttons -->
             <div class="akd-topbar-right">
-                <button class="akd-icon-btn" id="btn-sound" title="Toggle sound"><i class="fa fa-bell"/></button>
-                <button class="akd-filter-btn" id="btn-filter"><i class="fa fa-filter"/> Filter</button>
-                <button class="akd-icon-btn" id="btn-search" title="Search orders"><i class="fa fa-search"/></button>
-                <button class="akd-icon-btn" id="btn-more" title="More options"><i class="fa fa-ellipsis-v"/></button>
+                <div class="akd-search-wrap">
+                    <i class="fa fa-search"/>
+                    <input id="akd-search-inline" type="text" placeholder="Search item/table/customer..." />
+                    <button type="button" id="akd-search-clear" title="Clear search">&#215;</button>
+                </div>
+                <div class="akd-more-wrap">
+                    <button class="akd-icon-btn" id="btn-more" title="More options"><i class="fa fa-ellipsis-v"/></button>
+                    <div id="akd-more-menu" class="akd-more-menu">
+                        <button type="button" class="akd-more-item" id="btn-sound"><i class="fa fa-bell"/> Notification Sound</button>
+                        <label class="akd-more-item akd-more-item-toggle" for="akd-darkmode-toggle">
+                            <span>Dark Mode</span>
+                            <input id="akd-darkmode-toggle" type="checkbox"/>
+                        </label>
+                        <button type="button" class="akd-more-item" id="akd-open-settings">Open Configuration</button>
+                        <button type="button" class="akd-more-item akd-danger" id="akd-close-session">Close Session</button>
+                    </div>
+                </div>
             </div>
 
         </div>

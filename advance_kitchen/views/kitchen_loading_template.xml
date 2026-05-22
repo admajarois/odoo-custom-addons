@@ -54,7 +54,7 @@
 
             <!-- JS loaded at end of body so DOM is ready -->
             <script type="text/javascript"
-                    src="/advance_kitchen/static/src/js/kitchen_loading.js"/>
+                    src="/advance_kitchen/static/src/js/loading_component.js"/>
         </t>
     </template>
 </odoo>

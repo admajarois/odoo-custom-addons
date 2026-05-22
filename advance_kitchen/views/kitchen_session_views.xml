@@ -21,7 +21,6 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="action_open_display" type="object" string="Open Display" class="btn-primary" invisible="state != 'opened'"/>
                     <button name="action_close" type="object" string="Close" class="btn-secondary" invisible="state != 'opened'"/>
                     <field name="state" widget="statusbar"/>
                 </header>

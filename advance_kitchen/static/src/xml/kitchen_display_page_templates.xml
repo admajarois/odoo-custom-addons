@@ -1,34 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="advance_kitchen.KitchenBoard">
-        <div class="akd-board">
-            <t t-call="advance_kitchen.KitchenColumn">
-                <t t-set="title" t-value="'New'"/>
-                <t t-set="state" t-value="'pending'"/>
-                <t t-set="orders" t-value="grouped.new"/>
-            </t>
-            <t t-call="advance_kitchen.KitchenColumn">
-                <t t-set="title" t-value="'Preparing'"/>
-                <t t-set="state" t-value="'in_progress'"/>
-                <t t-set="orders" t-value="grouped.preparing"/>
-            </t>
-            <t t-call="advance_kitchen.KitchenColumn">
-                <t t-set="title" t-value="'Ready'"/>
-                <t t-set="state" t-value="'ready'"/>
-                <t t-set="orders" t-value="grouped.ready"/>
-            </t>
-            <t t-call="advance_kitchen.KitchenColumn">
-                <t t-set="title" t-value="'Completed'"/>
-                <t t-set="state" t-value="'done'"/>
-                <t t-set="orders" t-value="grouped.completed"/>
-            </t>
-        </div>
+        <t t-call="advance_kitchen.KitchenColumn">
+            <t t-set="title" t-value="'New'"/>
+            <t t-set="state" t-value="'pending'"/>
+            <t t-set="orders" t-value="grouped.new"/>
+        </t>
+        <t t-call="advance_kitchen.KitchenColumn">
+            <t t-set="title" t-value="'Preparing'"/>
+            <t t-set="state" t-value="'in_progress'"/>
+            <t t-set="orders" t-value="grouped.preparing"/>
+        </t>
+        <t t-call="advance_kitchen.KitchenColumn">
+            <t t-set="title" t-value="'Ready'"/>
+            <t t-set="state" t-value="'ready'"/>
+            <t t-set="orders" t-value="grouped.ready"/>
+        </t>
+        <t t-call="advance_kitchen.KitchenColumn">
+            <t t-set="title" t-value="'Completed'"/>
+            <t t-set="state" t-value="'done'"/>
+            <t t-set="orders" t-value="grouped.completed"/>
+        </t>
     </t>
 
     <t t-name="advance_kitchen.KitchenColumn">
-        <div t-attf-class="akd-col akd-col-{{ state }}">
+        <div t-attf-class="akd-col akd-col-{{ state }}" t-att-data-col-state="state">
             <div class="akd-col-header">
-                <div class="akd-col-title"><t t-esc="title"/></div>
+                <div class="akd-col-title">
+                    <span class="akd-col-indicator"/>
+                    <t t-esc="title"/>
+                </div>
                 <div class="akd-col-count"><t t-esc="(orders &amp;&amp; orders.length) || 0"/></div>
             </div>
             <div class="akd-col-body">
@@ -52,60 +53,85 @@
     </t>
 
     <t t-name="advance_kitchen.KitchenOrderCard">
-        <div t-attf-class="akd-card {{ order.state || 'pending' }}" t-att-data-order-id="order.id">
-            <div class="kitchen-order-header">
+        <div class="akd-card" t-att-data-order-id="order.id" t-att-data-order-state="order.order_state || 'pending'">
+            <div class="akd-card-top-bar"/>
+            <div class="akd-card-header">
                 <div>
-                    <div class="kitchen-order-number">
-                        <t t-esc="order.name || ''"/>
+                    <div class="akd-card-id">
+                        <t t-esc="order.order_name || ''"/>
                     </div>
-                    <div class="kitchen-order-table">
-                        <t t-esc="order.table_name || 'No Table'"/>
-                    </div>
+                    <span class="akd-card-badge"><t t-esc="stateLabel(order.order_state || 'pending')"/></span>
                 </div>
-                <div class="kitchen-order-time">
+                <div class="akd-card-time">
                     <t t-esc="formatTime(order.order_date)"/>
                 </div>
             </div>
 
-            <div class="kitchen-order-customer">
-                <t t-esc="order.customer_name || 'Guest'"/>
+            <div class="akd-card-meta">
+                <span class="akd-card-meta-item">Table: <t t-esc="order.table_name || 'No Table'"/></span>
+                <span class="akd-card-meta-item">Guest: <t t-esc="order.customer_name || 'Guest'"/></span>
             </div>
 
-            <div class="kitchen-order-lines">
-                <t t-foreach="order.line_ids || []" t-as="line" t-key="line.id || line.product_name">
-                    <div t-attf-class="kitchen-order-line {{ line.state === 'done' ? 'done' : (line.state === 'cancelled' ? 'cancelled' : '') }}">
+            <div class="akd-card-lines">
+                <t t-foreach="order.lines || []" t-as="line" t-key="line.id">
+                    <div t-attf-class="akd-card-line {{ line.item_state === 'done' ? 'akd-card-line--done' : '' }}">
                         <div>
-                            <div class="kitchen-order-line-name">
+                            <div class="akd-card-line-name">
                                 <t t-esc="line.product_name || ''"/>
                             </div>
                             <t t-if="line.note">
-                                <div class="kitchen-order-line-note">
+                                <div class="akd-card-line-note">
                                     <t t-esc="line.note"/>
                                 </div>
                             </t>
                         </div>
-                        <div class="kitchen-order-line-qty">
+                        <div class="akd-card-line-qty">
                             x<t t-esc="line.quantity || 0"/>
+                        </div>
+                        <div class="akd-line-actions">
+                            <t t-if="line.item_state === 'pending'">
+                                <button class="akd-btn akd-btn--start" data-entity="line" data-action="start" t-att-data-id="line.id">Start</button>
+                            </t>
+                            <t t-elif="line.item_state === 'in_progress'">
+                                <button class="akd-btn akd-btn--bump" data-entity="line" data-action="ready" t-att-data-id="line.id">Ready</button>
+                            </t>
+                            <t t-elif="line.item_state === 'ready'">
+                                <button class="akd-btn akd-btn--serve" data-entity="line" data-action="done" t-att-data-id="line.id">Serve</button>
+                            </t>
+                            <t t-else="">
+                                <button class="akd-btn akd-btn--ghost" data-entity="line" data-action="reset" t-att-data-id="line.id">Reset</button>
+                            </t>
+                            <t t-if="line.item_state !== 'done'">
+                                <button class="akd-btn-cancel akd-btn-cancel--icon" data-entity="line" data-action="cancel" t-att-data-id="line.id" title="Cancel item">X</button>
+                            </t>
+                        </div>
+                    </div>
+                </t>
+                <t t-if="!(order.lines &amp;&amp; order.lines.length)">
+                    <div class="akd-card-line akd-card-line--done">
+                        <div>
+                            <div class="akd-card-line-name">No items</div>
                         </div>
                     </div>
                 </t>
             </div>
 
-            <div class="kitchen-order-actions">
-                <t t-if="order.state === 'pending'">
-                    <button class="kitchen-order-btn start" data-action="start" t-att-data-id="order.id">Start</button>
+            <div class="akd-card-actions akd-card-actions--order">
+                <t t-if="order.order_state === 'pending'">
+                    <button class="akd-btn akd-btn--start" data-entity="order" data-action="start" t-att-data-id="order.id">Start All</button>
                 </t>
-                <t t-elif="order.state === 'in_progress'">
-                    <button class="kitchen-order-btn bump" data-action="ready" t-att-data-id="order.id">Bump</button>
-                    <button class="kitchen-order-btn done-btn" data-action="done" t-att-data-id="order.id">Done</button>
+                <t t-elif="order.order_state === 'in_progress'">
+                    <button class="akd-btn akd-btn--bump" data-entity="order" data-action="ready" t-att-data-id="order.id">Mark Ready</button>
                 </t>
-                <t t-elif="order.state === 'ready'">
-                    <button class="kitchen-order-btn done-btn" data-action="done" t-att-data-id="order.id">Serve</button>
+                <t t-elif="order.order_state === 'ready'">
+                    <button class="akd-btn akd-btn--serve" data-entity="order" data-action="done" t-att-data-id="order.id">Complete</button>
                 </t>
                 <t t-else="">
-                    <span class="akd-card-badge">Completed</span>
+                    <button class="akd-btn akd-btn--ghost" data-entity="order" data-action="start" t-att-data-id="order.id">Reopen</button>
                 </t>
-                <button class="kitchen-order-btn cancel" data-action="cancel" t-att-data-id="order.id">Cancel</button>
+                <t t-if="order.order_state !== 'done'">
+                    <button class="akd-btn akd-btn--danger" data-entity="order" data-action="cancel" t-att-data-id="order.id">Cancel Order</button>
+                </t>
             </div>
         </div>
     </t>
