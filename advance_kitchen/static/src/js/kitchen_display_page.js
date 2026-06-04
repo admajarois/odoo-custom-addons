@@ -7,7 +7,7 @@ import { browser } from "@web/core/browser/browser";
 
 const BUS_CHANNEL_ALL = "kitchen_display";
 const BUS_EVENT_TYPE = "kitchen_order_update";
-const STATE_ORDER = ["all", "pending", "in_progress", "ready", "done"];
+const COMPLETED_PREVIEW_LIMIT = 8;
 
 publicWidget.registry.PosKitchenDisplayPage = publicWidget.Widget.extend({
     selector: "#akd-root",
@@ -20,7 +20,7 @@ publicWidget.registry.PosKitchenDisplayPage = publicWidget.Widget.extend({
         "click #akd-search-clear": "_onSearchInlineClear",
         "click #btn-sidebar-toggle": "_onSidebarToggle",
         "click #btn-sound": "_onToggleSound",
-        "click #btn-view-all": "_onViewAll",
+        "click .akd-view-all-btn": "_onViewAll",
         "click #btn-hold": "_onHold",
         "click #btn-recall": "_onRecall",
         "click #btn-more": "_onMore",
@@ -320,7 +320,6 @@ publicWidget.registry.PosKitchenDisplayPage = publicWidget.Widget.extend({
             this.updateStats(visibleOrders);
             this._updateSyncStatus();
             this._updateStationBadges(this._allOrders);
-            this._updateCompletedChips(this._allOrders);
         } catch (err) {
             console.error("Kitchen Display: failed to load orders", err);
         }
@@ -413,8 +412,14 @@ publicWidget.registry.PosKitchenDisplayPage = publicWidget.Widget.extend({
             else grouped.completed.push(order);
         }
 
+        const completedTotal = grouped.completed.length;
+        const completedHiddenCount = Math.max(0, completedTotal - COMPLETED_PREVIEW_LIMIT);
+        grouped.completed = grouped.completed.slice(0, COMPLETED_PREVIEW_LIMIT);
+
         const frag = renderToFragment("advance_kitchen.KitchenBoard", {
             grouped,
+            completedTotal,
+            completedHiddenCount,
             formatTime: this.formatTime.bind(this),
             stateLabel: this._stateLabel.bind(this),
         });
@@ -446,19 +451,6 @@ publicWidget.registry.PosKitchenDisplayPage = publicWidget.Widget.extend({
 
     _updateStationBadges(orders) {
         this._setText("#nav-count-stations-all", (orders || []).length);
-    },
-
-    _updateCompletedChips(orders) {
-        const chipsEl = this.el.querySelector("#akd-completed-chips");
-        if (!chipsEl) return;
-        const done = (orders || []).filter((o) => o.order_state === "done").slice(0, 8);
-        chipsEl.replaceChildren();
-        for (const order of done) {
-            const chip = document.createElement("span");
-            chip.className = "akd-completed-chip";
-            chip.textContent = `${order.order_name} • ${order.table_name}`;
-            chipsEl.appendChild(chip);
-        }
     },
 
     _updateSyncStatus() {

@@ -5,21 +5,29 @@
             <t t-set="title" t-value="'New'"/>
             <t t-set="state" t-value="'pending'"/>
             <t t-set="orders" t-value="grouped.new"/>
+            <t t-set="total" t-value="(grouped.new &amp;&amp; grouped.new.length) || 0"/>
+            <t t-set="hiddenCount" t-value="0"/>
         </t>
         <t t-call="advance_kitchen.KitchenColumn">
             <t t-set="title" t-value="'Preparing'"/>
             <t t-set="state" t-value="'in_progress'"/>
             <t t-set="orders" t-value="grouped.preparing"/>
+            <t t-set="total" t-value="(grouped.preparing &amp;&amp; grouped.preparing.length) || 0"/>
+            <t t-set="hiddenCount" t-value="0"/>
         </t>
         <t t-call="advance_kitchen.KitchenColumn">
             <t t-set="title" t-value="'Ready'"/>
             <t t-set="state" t-value="'ready'"/>
             <t t-set="orders" t-value="grouped.ready"/>
+            <t t-set="total" t-value="(grouped.ready &amp;&amp; grouped.ready.length) || 0"/>
+            <t t-set="hiddenCount" t-value="0"/>
         </t>
         <t t-call="advance_kitchen.KitchenColumn">
             <t t-set="title" t-value="'Completed'"/>
             <t t-set="state" t-value="'done'"/>
             <t t-set="orders" t-value="grouped.completed"/>
+            <t t-set="total" t-value="completedTotal"/>
+            <t t-set="hiddenCount" t-value="completedHiddenCount"/>
         </t>
     </t>
 
@@ -30,12 +38,22 @@
                     <span class="akd-col-indicator"/>
                     <t t-esc="title"/>
                 </div>
-                <div class="akd-col-count"><t t-esc="(orders &amp;&amp; orders.length) || 0"/></div>
+                <div class="akd-col-count"><t t-esc="total"/></div>
             </div>
             <div class="akd-col-body">
                 <t t-if="orders &amp;&amp; orders.length">
                     <t t-foreach="orders" t-as="order" t-key="order.id">
-                        <t t-call="advance_kitchen.KitchenOrderCard"/>
+                        <t t-if="state === 'done'">
+                            <t t-call="advance_kitchen.KitchenCompletedOrderRow"/>
+                        </t>
+                        <t t-else="">
+                            <t t-call="advance_kitchen.KitchenOrderCard"/>
+                        </t>
+                    </t>
+                    <t t-if="state === 'done' &amp;&amp; hiddenCount">
+                        <button type="button" class="akd-view-all-btn akd-view-all-btn--column">
+                            View <t t-esc="hiddenCount"/> more
+                        </button>
                     </t>
                 </t>
                 <t t-else="">
@@ -49,6 +67,25 @@
         <div class="kitchen-empty">
             <div class="kitchen-empty-icon">&#x1F373;</div>
             <div class="kitchen-empty-text">No orders in queue</div>
+        </div>
+    </t>
+
+    <t t-name="advance_kitchen.KitchenCompletedOrderRow">
+        <div class="akd-completed-order-row" t-att-data-order-id="order.id">
+            <div class="akd-completed-order-main">
+                <div class="akd-completed-order-name">
+                    <t t-esc="order.order_name || ''"/>
+                </div>
+                <div class="akd-completed-order-meta">
+                    <span><t t-esc="order.table_name || 'No Table'"/></span>
+                    <span><t t-esc="order.customer_name || 'Guest'"/></span>
+                    <span><t t-esc="(order.lines &amp;&amp; order.lines.length) || 0"/> item(s)</span>
+                </div>
+            </div>
+            <div class="akd-completed-order-side">
+                <span class="akd-completed-order-time"><t t-esc="formatTime(order.order_date)"/></span>
+                <span class="akd-completed-order-check"><i class="fa fa-check"/></span>
+            </div>
         </div>
     </t>
 

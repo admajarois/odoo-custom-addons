@@ -15,7 +15,7 @@ patch(ProductScreen.prototype, {
     async sendToKitchen() {
         console.log("POS Kitchen Display: sendToKitchen clicked");
 
-        const order = this.pos.selectedOrder;
+        const order = this.pos.selectedOrder || (this.pos.getOrder ? this.pos.getOrder() : null);
         if (!order) {
             return;
         }
@@ -31,27 +31,38 @@ patch(ProductScreen.prototype, {
             return;
         }
 
+        const table = order.table_id || order.table || (order.getTable ? order.getTable() : null);
+        const partner = order.partner_id || order.partner || (order.getPartner ? order.getPartner() : null);
+        const tableName = table
+            ? (table.table_number ? `T ${table.table_number}` : (table.display_name || table.name || ''))
+            : (order.floating_order_name || '');
+        const customerName = partner
+            ? (partner.display_name || partner.name || '')
+            : (order.floating_order_name || '');
+
         const orderData = {
             pos_config_id: this.pos.config && this.pos.config.id ? this.pos.config.id : null,
             table_id: null,
-            table_name: order.table ? order.table.name : '',
-            customer_name: order.partner ? order.partner.name : '',
+            table_name: tableName,
+            partner_id: partner && partner.id ? partner.id : null,
+            customer_name: customerName,
             note: order.note || '',
             priority: 'normal',
+            creation_trigger: 'manual',
             lines: []
         };
-        orderData.table_id = order.table && order.table.id ? order.table.id : null;
+        orderData.table_id = table && table.id ? table.id : null;
 
         for (const line of lines) {
-            let product = line.product || (line.getProduct ? line.getProduct() : null);
+            const product = line.product_id || line.product || (line.getProduct ? line.getProduct() : null);
             if (!product) continue;
 
-            const quantity = line.quantity || 1;
-            let note = line.note || (line.getNote ? line.getNote() : '') || '';
+            const quantity = line.qty || line.quantity || (line.getQuantity ? line.getQuantity() : 1) || 1;
+            let note = line.customer_note || line.note || (line.getNote ? line.getNote() : '') || '';
 
             orderData.lines.push({
                 product_id: product.id,
-                product_name: product.display_name || product.name || 'Unknown',
+                product_name: line.full_product_name || product.display_name || product.name || 'Unknown',
                 quantity: quantity,
                 note: note
             });

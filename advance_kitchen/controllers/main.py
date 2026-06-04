@@ -40,8 +40,8 @@ class KitchenDisplay(http.Controller):
             table_field = order.get('table_id')
             partner_field = order.get('partner_id')
             order['table_name'] = (
-                table_field[1] if isinstance(table_field, list) and len(table_field) > 1
-                else order.get('table_name') or ''
+                order.get('table_name')
+                or (table_field[1] if isinstance(table_field, list) and len(table_field) > 1 else '')
             )
             order['customer_name'] = (
                 partner_field[1] if isinstance(partner_field, list) and len(partner_field) > 1

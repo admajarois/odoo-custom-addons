@@ -10,10 +10,14 @@
                 <field name="current_session_id"/>
                 <field name="current_user_id"/>
                 <field name="active"/>
+                <field name="order_creation_mode"/>
                 <templates>
                     <t t-name="card">
                         <div name="card_title" class="mb-4 ms-2">
                             <field name="name" class="fw-bold fs-4 d-block"/>
+                            <span class="badge text-bg-light mt-2">
+                                <field name="order_creation_mode"/>
+                            </span>
                         </div>
                         <div class="row g-0 pb-4 ms-2 mt-auto">
                             <div class="col-12 col-md-6 d-flex flex-wrap align-items-center gap-2 mb-2 mb-md-0">
@@ -38,6 +42,7 @@
             <list>
                 <field name="name"/>
                 <field name="company_id"/>
+                <field name="order_creation_mode"/>
             </list>
         </field>
     </record>
@@ -51,6 +56,7 @@
                     <group>
                         <field name="name"/>
                         <field name="company_id"/>
+                        <field name="order_creation_mode" widget="radio"/>
                     </group>
                 </sheet>
             </form>

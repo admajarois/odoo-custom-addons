@@ -5,6 +5,11 @@ class PosConfig(models.Model):
     _inherit = "pos.config"
 
     kitchen_id = fields.Many2one("kitchen.kitchen", string="Kitchen", help="Default kitchen destination for orders sent from this POS.")
+    kitchen_order_creation_mode = fields.Selection(
+        related="kitchen_id.order_creation_mode",
+        readonly=True,
+        string="Kitchen Order Creation",
+    )
 
     @api.model
     def load_onboarding_restaurant_scenario(self, with_demo_data=True):

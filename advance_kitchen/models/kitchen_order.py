@@ -1,4 +1,4 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 import logging
 import traceback
@@ -17,6 +17,7 @@ class PosKitchenOrder(models.Model):
     kitchen_id = fields.Many2one('kitchen.kitchen', string='Kitchen', readonly=True, index=True)
     kitchen_session_id = fields.Many2one('kitchen.session', string='Kitchen Session', readonly=True, index=True)
     table_id = fields.Many2one('restaurant.table', string='Table')
+    table_name = fields.Char(string='Table Name')
     partner_id = fields.Many2one('res.partner', string='Customer')
     customer_name = fields.Char(string='Customer Name')
     order_date = fields.Datetime(string='Order Date', default=fields.Datetime.now)
@@ -60,24 +61,127 @@ class PosKitchenOrder(models.Model):
                 order.color = 'white'
 
     def action_start(self):
+        lines = self.mapped('line_ids').filtered(lambda line: line.state not in ('done', 'cancelled'))
+        lines.write({'state': 'cooking', 'date_done': False})
         self.write({'state': 'in_progress'})
         return True
 
     def action_done(self):
+        lines = self.mapped('line_ids').filtered(lambda line: line.state != 'cancelled')
+        lines.write({
+            'state': 'done',
+            'date_done': fields.Datetime.now(),
+        })
         self.write({'state': 'done'})
         return True
 
     def action_ready(self):
+        lines = self.mapped('line_ids').filtered(lambda line: line.state not in ('done', 'cancelled'))
+        lines.write({'state': 'ready'})
         self.write({'state': 'ready'})
         return True
 
     def action_cancel(self):
+        self.mapped('line_ids').filtered(lambda line: line.state != 'done').write({'state': 'cancelled'})
         self.write({'state': 'cancelled'})
         return True
 
     def action_reset(self):
+        self.mapped('line_ids').write({'state': 'pending', 'date_done': False})
         self.write({'state': 'pending'})
         return True
+
+    def notify_kitchen_display(self, order):
+        """
+        Push a real-time update to all subscribed kitchen display clients.
+        """
+        session = order.kitchen_session_id
+        payload = {
+            "order_id": order.id,
+            "name": order.name,
+            "state": order.state,
+            "session_id": session.id if session else None,
+        }
+
+        self.env["bus.bus"]._sendone(
+            "kitchen_display",
+            "kitchen_order_update",
+            payload,
+        )
+
+        if session:
+            self.env["bus.bus"]._sendone(
+                f"kitchen_display-{session.id}",
+                "kitchen_order_update",
+                payload,
+            )
+
+    def _get_pos_order_table_name(self, pos_order):
+        table = getattr(pos_order, "table_id", False)
+        if table:
+            table_number = table.table_number
+            if table_number:
+                return f"T {table_number}"
+            return table.display_name or ""
+        return pos_order.floating_order_name or ""
+
+    def _get_pos_order_customer_name(self, pos_order):
+        partner = pos_order.partner_id
+        if partner:
+            return partner.display_name or partner.name or ""
+        return pos_order.floating_order_name or ""
+
+    def _prepare_order_data_from_pos_order(self, pos_order, kitchen):
+        lines = []
+        for order_line in pos_order.lines:
+            if order_line.qty <= 0 or not order_line.product_id:
+                continue
+            lines.append({
+                "product_id": order_line.product_id.id,
+                "product_name": order_line.full_product_name or order_line.product_id.display_name,
+                "quantity": order_line.qty,
+                "note": order_line.customer_note or order_line.note or "",
+            })
+
+        table = getattr(pos_order, "table_id", False)
+        note = "\n".join(filter(None, [pos_order.general_customer_note, pos_order.internal_note]))
+        return {
+            "creation_trigger": "automatic",
+            "pos_order_id": pos_order.id,
+            "pos_config_id": pos_order.config_id.id,
+            "kitchen_id": kitchen.id,
+            "table_id": table.id if table else False,
+            "table_name": self._get_pos_order_table_name(pos_order),
+            "partner_id": pos_order.partner_id.id or False,
+            "customer_name": self._get_pos_order_customer_name(pos_order),
+            "note": note,
+            "priority": "normal",
+            "lines": lines,
+        }
+
+    @api.model
+    def auto_create_from_pos_order(self, pos_order):
+        pos_order = pos_order.exists()
+        if not pos_order or pos_order.state not in ("paid", "done"):
+            return {"success": False, "skipped": True, "reason": "POS order is not paid"}
+
+        kitchen = pos_order.config_id.kitchen_id
+        if not kitchen:
+            return {"success": False, "skipped": True, "reason": "No kitchen configured"}
+        if kitchen.order_creation_mode != "automatic":
+            return {"success": False, "skipped": True, "reason": "Kitchen is manual"}
+
+        existing = self.search([
+            ("pos_order_id", "=", pos_order.id),
+            ("state", "!=", "cancelled"),
+        ], limit=1)
+        if existing:
+            return {"success": True, "skipped": True, "order_id": existing.id, "name": existing.name}
+
+        order_data = self._prepare_order_data_from_pos_order(pos_order, kitchen)
+        if not order_data["lines"]:
+            return {"success": False, "skipped": True, "reason": "No kitchen lines"}
+        return self.send_to_kitchen(order_data)
 
     @api.model
     def send_to_kitchen(self, order_data):
@@ -105,10 +209,25 @@ class PosKitchenOrder(models.Model):
                 except (TypeError, ValueError):
                     pos_order_id = False
 
+            if pos_order_id:
+                existing = self.search([
+                    ('pos_order_id', '=', pos_order_id),
+                    ('state', '!=', 'cancelled'),
+                ], limit=1)
+                if existing:
+                    _logger.info('Kitchen order already exists for POS order %s: %s', pos_order_id, existing.id)
+                    return {
+                        'success': True,
+                        'order_id': existing.id,
+                        'name': existing.name,
+                        'existing': True,
+                    }
+
             vals = {
                 'name': 'New',
                 'pos_order_id': pos_order_id,
                 'table_id': order_data.get('table_id') or False,
+                'table_name': order_data.get('table_name') or '',
                 'partner_id': order_data.get('partner_id') or False,
                 'customer_name': order_data.get('customer_name') or order_data.get('partner_name') or '',
                 'order_date': fields.Datetime.now(),
@@ -127,7 +246,15 @@ class PosKitchenOrder(models.Model):
             if not kitchen_id:
                 raise UserError("No Kitchen configured for this POS. Set it on Point of Sale > Configuration > Point of Sale.")
 
-            vals["kitchen_id"] = int(kitchen_id)
+            kitchen = self.env["kitchen.kitchen"].sudo().browse(int(kitchen_id)).exists()
+            if not kitchen:
+                raise UserError(_("Kitchen not found."))
+
+            creation_trigger = order_data.get("creation_trigger") or "manual"
+            if kitchen.order_creation_mode == "automatic" and creation_trigger != "automatic":
+                raise UserError(_("This kitchen creates orders automatically after POS payment."))
+
+            vals["kitchen_id"] = kitchen.id
             kitchen_session = self.env["kitchen.session"].sudo().get_or_create_open_session(vals["kitchen_id"])
             vals["kitchen_session_id"] = kitchen_session.id
 
@@ -181,6 +308,7 @@ class PosKitchenOrder(models.Model):
                 self.env['pos.kitchen.order.line'].create(line_vals)
 
             _logger.info('=== KITCHEN ORDER COMPLETED ===')
+            self.notify_kitchen_display(kitchen_order)
             return {'success': True, 'order_id': kitchen_order.id, 'name': kitchen_order.name}
 
         except Exception as e:
@@ -189,39 +317,6 @@ class PosKitchenOrder(models.Model):
             _logger.error('Traceback: %s', traceback.format_exc())
             raise UserError(f'Failed to send to kitchen: {str(e)}')
 
-    
-    def notify_kitchen_display(self, order):
-        """
-        Push a real-time update to all subscribed kitchen display clients.
-    
-        Channels
-        --------
-        - "kitchen_display"                        → all displays
-        - "kitchen_display-<session_id>"           → session-specific display
-    
-        The frontend listens for the event type "kitchen_order_update".
-        """
-        payload = {
-            "order_id":   order.id,
-            "state":      order.state,
-            "session_id": order.session_id.id if order.session_id else None,
-        }
-    
-        # Broadcast to the global kitchen channel (all displays)
-        self.env["bus.bus"]._sendone(
-            "kitchen_display",
-            "kitchen_order_update",
-            payload,
-        )
-    
-        # Also broadcast to the session-specific channel if applicable
-        if order.session_id:
-            self.env["bus.bus"]._sendone(
-                f"kitchen_display-{order.session_id.id}",
-                "kitchen_order_update",
-                payload,
-            )
-    
 
 
 

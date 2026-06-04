@@ -9,6 +9,16 @@ class KitchenKitchen(models.Model):
     name = fields.Char(required=True)
     company_id = fields.Many2one("res.company", default=lambda self: self.env.company, required=True, index=True)
     active = fields.Boolean(default=True)
+    order_creation_mode = fields.Selection(
+        [
+            ("manual", "Manual"),
+            ("automatic", "Automatic"),
+        ],
+        string="Order Creation",
+        default="manual",
+        required=True,
+        help="Manual lets users send orders from POS. Automatic creates kitchen orders after successful POS payment.",
+    )
     session_ids = fields.One2many("kitchen.session", "kitchen_id", string="Sessions")
     order_ids = fields.One2many("pos.kitchen.order", "kitchen_id", string="Kitchen Orders")
     current_session_id = fields.Many2one("kitchen.session", string="Current Session", compute="_compute_current_session_id")

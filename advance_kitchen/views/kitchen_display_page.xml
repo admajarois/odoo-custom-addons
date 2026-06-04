@@ -345,20 +345,10 @@
 
     <!-- ============================================================
          BOTTOM STATUS BAR
-         Contains: completed chips strip + sync status + hold/recall
+         Contains: sync status + hold/recall
     ============================================================ -->
     <template id="KitchenBottomBar" name="Kitchen Bottom Bar">
         <div class="akd-bottom">
-
-            <!-- Completed orders strip -->
-            <div class="akd-completed-strip">
-                <span class="akd-completed-label"><i class="fa fa-check-circle"/> Completed Orders</span>
-                <div class="akd-completed-chips" id="akd-completed-chips">
-                    <!-- Chips injected by JS -->
-                </div>
-                <button class="akd-view-all-btn" id="btn-view-all">View All</button>
-            </div>
-
             <!-- Sync status -->
             <div class="akd-sync-status">
                 <span class="akd-sync-dot" id="akd-sync-dot"></span>

@@ -6,6 +6,7 @@
        t-inherit-mode="extension">
         <xpath expr="//div[hasclass('control-buttons')]" position="inside">
             <button class="btn btn-primary send-to-kitchen"
+                    t-if="!pos.config.kitchen_order_creation_mode or pos.config.kitchen_order_creation_mode === 'manual'"
                     t-on-click="() => this.sendToKitchen()">
                 <i class="fa fa-utensils me-1"/>
                 Send to Kitchen
